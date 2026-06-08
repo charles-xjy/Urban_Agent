@@ -127,14 +127,35 @@ async def planner_node(state: AgentState) -> AgentState:
 
 # ── Node 3：human_approval ────────────────────────────────────────────────────
 
-def human_approval_node(state: AgentState) -> AgentState:
+_CONFIRM_WORDS = {"确认", "可以", "ok", "okay", "yes", "y", "行", "好", "没问题", "同意", "开始", "执行"}
+
+_PLAN_EDIT_SYSTEM = """\
+你是研究计划编辑助手。根据当前研究计划和用户的自然语言修改要求，输出修改后的计划。
+
+规则：
+- 保留用户没有要求删除或修改的任务
+- 按用户要求替换、删除、合并或新增任务
+- 总任务数保持在 2-4 个；除非用户明确要求更少，否则至少保留 2 个
+- topic：简短标题（≤10字）
+- description：具体研究内容（≤30字）
+- 输出严格为 JSON 数组，不含其他文字
+
+输出示例：
+[
+  {"topic": "空间扩张", "description": "建成区面积、建设用地扩张趋势"},
+  {"topic": "经济发展", "description": "产业布局、投资强度和经济活动变化"}
+]
+"""
+
+
+async def human_approval_node(state: AgentState) -> AgentState:
     """
     展示计划给用户，等待用户确认或修改。
 
     用户可以回复：
       - "确认" / "可以" / "ok" → 直接执行
       - JSON 数组 → 替换整个计划
-      - 自然语言修改描述 → 交给 LLM 重新解析（当前简化：直接用原计划）
+      - 自然语言修改描述 → 交给 LLM 重新解析计划
     """
     plan = state["plan"]
     plan_text = "\n".join(
@@ -149,8 +170,12 @@ def human_approval_node(state: AgentState) -> AgentState:
 
     user_response: str = interrupt(prompt)
 
-    # 尝试解析用户修改（JSON 格式）
     stripped = user_response.strip()
+    normalized = stripped.lower()
+    if not stripped or normalized in _CONFIRM_WORDS:
+        return {"plan": plan}
+
+    # 尝试解析用户修改（JSON 格式）
     if stripped.startswith("["):
         try:
             items = json.loads(stripped)
@@ -161,12 +186,43 @@ def human_approval_node(state: AgentState) -> AgentState:
                     "description": item.get("description", item.get("d", "")),
                 }
                 for i, item in enumerate(items)
+                if item.get("topic", item.get("t", "")) and item.get("description", item.get("d", ""))
             ]
-            return {"plan": new_plan}
+            if new_plan:
+                return {"plan": new_plan}
         except Exception:
             pass
 
-    # 用户输入确认词，直接沿用原计划
+    edit_context = {
+        "current_plan": [
+            {"topic": t["topic"], "description": t["description"]}
+            for t in plan
+        ],
+        "user_request": stripped,
+    }
+    resp = await _llm(max_tokens=512).ainvoke([
+        SystemMessage(content=_PLAN_EDIT_SYSTEM),
+        HumanMessage(content=json.dumps(edit_context, ensure_ascii=False)),
+    ])
+    raw = re.sub(r"```(?:json)?\s*|\s*```", "", resp.content).strip()
+    try:
+        items = json.loads(raw)
+        if isinstance(items, dict):
+            items = [items]
+        new_plan = [
+            {
+                "id": f"task_{i+1}",
+                "topic": item.get("topic", item.get("t", "")),
+                "description": item.get("description", item.get("d", "")),
+            }
+            for i, item in enumerate(items[:4])
+            if item.get("topic", item.get("t", "")) and item.get("description", item.get("d", ""))
+        ]
+        if new_plan:
+            return {"plan": new_plan}
+    except Exception:
+        logger.warning("计划修改解析失败，用户输入：%s，模型输出：%s", stripped, raw)
+
     return {"plan": plan}
 
 

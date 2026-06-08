@@ -22,17 +22,132 @@
 
 ---
 
-## 调度模式：DeerFlow 白盒规划
+## 调度模式：领域化 Super Agent Harness
 
-用户可以在执行前审批并修改任务计划：
+本项目现在对标的是 DeerFlow 2.0 重构后的 **super agent harness** 思路：上层有一个负责拆解和编排的主 Agent / 主图，下层通过子 Agent 或工具执行具体任务。但本项目不是通用 super agent，而是把编排边界收窄到**城市变化分析**：先让 Planner 生成城市研究维度，再让用户确认或修改，最后并发派发多个领域 Researcher。
 
-| 维度 | 本项目（DeerFlow） | ODR 模式 |
-|------|-------------------|---------|
-| 任务拆分 | Planner 给出计划初稿，用户可修改 | Supervisor 内部决定，用户看不到 |
-| 用户确认 | **有**（确认/修改后才执行） | 无 |
-| 规划透明度 | 白盒 | 黑盒 |
+> 注：DeerFlow 2.0 是一次重写，官方 README 明确说明它与 v1 不共享代码。2.0 的核心不再是 v1 的固定 Deep Research 计划图，而是 Lead Agent + middleware + tools + subagents + memory + sandbox 的通用 harness。ODR 指 `langchain-ai/open_deep_research` 当前主线实现。
 
-**选择 DeerFlow 的原因：** 城市分析的研究维度因需求而异，给用户一次确认和调整机会，避免浪费算力跑无关方向。
+| 维度 | 本项目 | DeerFlow 2.0 | ODR 当前主线 |
+|------|--------|--------------|-------------|
+| 系统定位 | 城市变化分析专用研究系统 | 通用 super agent harness | 通用 Deep Research Agent |
+| Agent 编排 | 主图显式执行 `planner → human_approval → Send(researcher)` | Lead Agent 在运行中通过 `task` 工具委派 subagent | Supervisor 在运行中通过 `ConductResearch` 委派 researcher subgraph |
+| 用户确认 | **有**：研究维度确认/修改后才执行 | 不是固定执行前计划审批；可通过 clarification / todo / middleware 辅助交互 | 通常无执行前计划审批；先生成 research brief 后自动研究 |
+| 规划透明度 | 高：城市研究维度执行前可见、可改 | 中等：Lead Agent 可用 todo/思考管理任务，但 subagent 委派主要在运行中产生 | 中等：有 research brief，但具体 `ConductResearch` 委派在运行中产生 |
+| 子 Agent 粒度 | 一个城市变化维度对应一个 Researcher | `task(description, prompt, subagent_type)` 启动通用或自定义 subagent | 每个 `ConductResearch(research_topic)` 启动一个 researcher 子图 |
+| 工具体系 | web_search + 卫星图像 + POI 历史计数 | 配置化 tools、MCP、sandbox、skills、memory、subagents | 搜索工具、native web search、MCP 工具、`think_tool` 等 |
+| 核心目标 | 验证多源城市证据能否降低报告幻觉率 | 让通用 Agent 能分解、委派、使用工具和沙箱完成复杂任务 | 自动完成开放式深度研究 |
+
+**为什么仍然保留执行前审批：** DeerFlow 2.0 和 ODR 都更偏“运行中动态委派”，这适合开放式任务；但城市变化分析的研究口径很敏感，例如用户可能真正关心产业、公共服务或空间扩张，而不是模型默认拆出的生态或交通。因此本项目把“研究哪些维度”前置为可审计划，用一次用户确认来减少跑偏和无效工具调用。
+
+**与 DeerFlow 2.0 / ODR 的定位差异：** 与 DeerFlow 2.0 相比，本项目不是通用 harness，不追求任意任务的 subagent/tool/sandbox 编排，而是把子 Agent 固定为城市 Researcher，并把工具限制在网页、卫星图、POI 历史计数三类城市证据。与 ODR 相比，本项目不让 Supervisor 在运行中不断产生新研究主题，而是先固定可审的城市研究维度，再并发研究。
+
+### Agent 调用方式差异
+
+DeerFlow 2.0、ODR 当前主线和本项目的核心差异不只是“有没有 Planner”，还体现在**谁决定调用哪个 Agent、调用前是否可见、Agent 内部能否自主使用工具**。
+
+源码核对依据：
+
+- DeerFlow 2.0 对比基于 `bytedance/deer-flow` 当前 `main` 分支：README 将其定义为 “super agent harness”；`backend/packages/harness/deerflow/client.py` 中 `DeerFlowClient._ensure_agent()` 创建 Lead Agent；`tools/tools.py` 在 `subagent_enabled=True` 时加入 `task_tool`；`tools/builtins/task_tool.py` 中 `task(description, prompt, subagent_type)` 会创建 `SubagentExecutor` 并异步执行 subagent；`agents/lead_agent/prompt.py` 的 subagent prompt 要求 Lead Agent “DECOMPOSE, DELEGATE, SYNTHESIZE”。
+- ODR 对比基于 `langchain-ai/open_deep_research` 当前主线：主图是 `clarify_with_user → write_research_brief → research_supervisor → final_report_generation`；Supervisor 绑定 `ConductResearch`、`ResearchComplete`、`think_tool`，在运行时通过 `ConductResearch` tool call 动态委派研究主题，并用 `asyncio.gather()` 并发执行多个 researcher subgraph。
+- 本项目对比基于当前仓库：`graph/main_graph.py` 中 `planner_node → human_approval_node → dispatch_researchers()`，其中 `dispatch_researchers()` 用 LangGraph `Send()` 对确认后的 `plan` 并发派发；`graph/researcher_graph.py` 中每个 Researcher 是 `create_react_agent`，工具集固定为 `web_search`、`analyze_satellite_image`、`query_poi_history`。
+
+| 维度 | DeerFlow 2.0 | ODR | 本项目 |
+|------|--------------|-----|--------|
+| Agent 调用入口 | Lead Agent 通过 `task` 工具按需委派 subagent | `clarify_with_user → write_research_brief → research_supervisor` | `clarify_with_user → planner → 用户审批 → Send(researcher)` |
+| 调度单位 | `task(description, prompt, subagent_type)`；subagent 类型可为 `general-purpose`、`bash` 或配置中的 custom agent | `ConductResearch(research_topic)`；Supervisor 运行时决定委派哪些研究主题 | `ResearchTask`；每个城市变化维度对应一个 Researcher，并发执行 |
+| 并发方式 | Lead Agent 可在一轮中发起多个并行 `task` 调用，并受最大并发数限制 | 多个 `ConductResearch` tool call 触发多个 `researcher_subgraph.ainvoke()`，用 `asyncio.gather()` 并发 | `Send()` 将用户确认后的多个子任务并发派发到 `researcher_graph` |
+| 调用透明度 | 中等：可以看到 task 事件和 subagent 运行状态，但委派通常由 Lead Agent 在执行中决定 | 中等：用户能看到过程，但具体研究主题由 Supervisor 在运行中产生 | 高：研究维度在执行前展示给用户，可确认或修改 |
+| 人工介入 | 通过 clarification、middleware、工具权限等机制交互；不是固定的执行前计划审批 | 当前主线主要自动执行；legacy workflow 才强调计划反馈 | 明确保留一次计划确认/修改，确认后才启动 Researcher |
+| 工具调用 | Lead Agent 和 subagent 使用配置化工具、MCP、sandbox、skills、memory；subagent 默认不再递归拥有 `task` 工具 | researcher 子图在 ReAct 循环中调用搜索、native web search、MCP、`think_tool` 等 | Researcher 在 `web_search`、`analyze_satellite_image`、`query_poi_history` 中自主选择 |
+| 与本项目关系 | 本项目借鉴“主 Agent/主图拆解后并发委派子 Agent”的 harness 思路，但将任务域和工具集固定为城市变化分析 | 本项目不像 ODR 那样由 Supervisor 运行时动态产生研究委派，而是先固定可审维度再并发研究 | 本项目关注多源城市证据交叉验证，而不是通用开放域研究 |
+
+一句话概括：**DeerFlow 2.0 是通用 Lead Agent 用 `task` 工具动态调 subagent；ODR 是 Research Supervisor 用 `ConductResearch` 动态调 researcher 子图；本项目是先让用户审定城市研究维度，再用 `Send()` 并发启动多个领域 Researcher。**
+
+### 参考框架执行流程
+
+#### DeerFlow 2.0：Lead Agent + task subagent harness
+
+DeerFlow 2.0 的核心是一个通用 Lead Agent。工具、MCP、sandbox、memory、skills、subagent 能力通过配置和 middleware 注入。开启 subagent 后，Lead Agent 会获得 `task` 工具，并被提示先分解任务、再并行委派、最后综合结果。
+
+```
+用户请求
+  ↓
+Lead Agent（create_agent）
+  ├─ 直接调用普通工具 / MCP / sandbox / memory
+  ├─ 需要并行探索时：task(description, prompt, subagent_type)
+  │     ↓
+  │   SubagentExecutor
+  │     ↓
+  │   subagent 独立上下文执行
+  │     ↓
+  │   返回结果给 Lead Agent
+  ↓
+Lead Agent 综合多个 subagent / tool 结果
+  ↓
+最终回答
+```
+
+它的关键点是：subagent 调用不是预先固定在一个城市研究计划里，而是 Lead Agent 在执行过程中根据任务复杂度动态决定；`task` 工具本身要求适合复杂、多步、并行探索任务，不适合简单单步操作。
+
+#### ODR：Supervisor 动态委派的研究子图
+
+ODR 当前主线的入口是 `deep_researcher` 图，主流程先澄清问题，再把用户消息改写成 `research_brief`，然后交给 `research_supervisor` 子图。Supervisor 不是先输出一个用户审批的完整 step plan，而是在运行中通过工具调用动态决定要委派哪些研究主题。
+
+```
+START
+  ↓
+clarify_with_user
+  ↓
+write_research_brief
+  ↓
+research_supervisor
+  ├─ think_tool：策略思考
+  ├─ ConductResearch：委派一个研究主题给 researcher_subgraph
+  └─ ResearchComplete：结束研究阶段
+  ↓
+final_report_generation
+  ↓
+END
+```
+
+其中 `ConductResearch` 是 Supervisor 绑定的工具，但它的作用不是直接搜索网页，而是启动一个 researcher 子图。多个 `ConductResearch` 调用会触发多个 `researcher_subgraph.ainvoke()`，并通过 `asyncio.gather()` 并发执行。
+
+```
+researcher_subgraph
+  ↓
+researcher
+  ↓
+researcher_tools（搜索 / native web search / MCP / think_tool 等）
+  ↺ researcher 继续 ReAct 循环
+  ↓
+compress_research
+  ↓
+返回 compressed_research 给 Supervisor
+```
+
+因此，ODR 的架构更接近“Supervisor 动态委派 + 子 Researcher 并发 + ReAct 工具循环 + 最终报告生成”。它适合开放域深度研究；而本项目把委派边界提前到用户可审的城市研究计划中，更强调研究维度、时间范围和证据类型的可控性。
+
+#### 本项目：领域化并发 Researcher
+
+本项目在结构上吸收 DeerFlow 2.0 的“主 Agent/主图拆解任务后委派子 Agent”思想，但没有采用完全动态的 `task` 工具委派；它先把待研究的城市维度显式列出来，让用户确认后再并发派发。
+
+```
+clarify_with_user
+  ↓
+planner 生成 2-4 个城市研究维度
+  ↓
+human_approval：用户确认或修改计划
+  ↓ Send()
+Researcher × N 并发执行
+  ├─ web_search：先获取文字背景
+  ├─ analyze_satellite_image：验证空间/物理变化
+  └─ query_poi_history：补充 POI/OSM 历史计数
+  ↓
+reporter 汇总 findings 生成最终报告
+```
+
+与 DeerFlow 2.0 相比，本项目没有开放式的 subagent 类型选择、skills、memory 和 sandbox 编排，而是让多个同构 Researcher 分别负责不同城市研究维度。与 ODR 相比，本项目不让 Supervisor 在运行中不断产生新研究委派，而是先让用户确认研究维度，再通过限定工具集做多源证据交叉验证。
 
 ---
 
