@@ -1,0 +1,34 @@
+# 环境变量（含 API Key，禁止上传）
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# 数据文件（卫星图和 baseline 存档）
+data/satellite_images/
+data/baselines/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# 测试缓存
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Claude Code 本地设置
+.claude/
+
+# 系统
+.DS_Store
+Thumbs.db

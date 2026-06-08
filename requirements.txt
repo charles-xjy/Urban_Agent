@@ -1,0 +1,10 @@
+earthengine-api
+langgraph
+langchain
+langchain-openai
+langchain-core
+ddgs
+pydantic
+httpx
+requests
+python-dotenv
