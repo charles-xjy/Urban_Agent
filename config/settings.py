@@ -39,6 +39,9 @@ if not AGENT_MODEL_NAME:
 if not CLAIM_MODEL_NAME:
     logger.warning("CLAIM_MODEL_NAME 未能获取，LLM 调用可能失败")
 
+# ── Jina Reader ───────────────────────────────────────────────────────────────
+JINA_API_KEY = os.getenv("JINA_API_KEY", "")
+
 # ── 高德 ──────────────────────────────────────────────────────────────────────
 GAODE_API_KEY = os.getenv("GAODE_API_KEY", "")
 

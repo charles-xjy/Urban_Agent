@@ -55,6 +55,9 @@ _CLARIFY_SYSTEM = """\
 
 
 async def clarify_node(state: AgentState) -> AgentState:
+    if state.get("batch_mode"):
+        return {"clarify_needed": False, "clarify_answer": ""}
+
     resp = await _llm().ainvoke([
         SystemMessage(content=_CLARIFY_SYSTEM),
         HumanMessage(content=state["user_input"]),
@@ -69,7 +72,6 @@ async def clarify_node(state: AgentState) -> AgentState:
     question: str = result.get("question", "")
 
     if needed:
-        # 向用户追问，等待回答
         answer: str = interrupt(question)
         return {
             "clarify_needed": True,
@@ -239,6 +241,7 @@ def dispatch_researchers(state: AgentState) -> list[Send]:
                 "start_year": state["start_year"],
                 "end_year": state["end_year"],
                 "findings": "",
+                "runtime": 0,
             },
         )
         for task in state["plan"]
@@ -290,7 +293,12 @@ def build_main_graph():
 
     g.add_edge(START,            "clarify")
     g.add_edge("clarify",        "planner")
-    g.add_edge("planner",        "human_approval")
+    def _after_planner(state: AgentState):
+        if state.get("batch_mode"):
+            return dispatch_researchers(state)
+        return "human_approval"
+
+    g.add_conditional_edges("planner", _after_planner, ["human_approval", "researcher"])
     # human_approval → researcher×N 并发派发
     g.add_conditional_edges("human_approval", dispatch_researchers, ["researcher"])
     g.add_edge("researcher",     "reporter")
@@ -310,22 +318,39 @@ async def run(
     start_year: int,
     end_year: int,
 ) -> str:
-    """
-    启动一次完整分析。
-
-    示例：
-        report = await run("分析雄安新区变化", "雄安新区", 2018, 2024)
-    """
+    """交互模式：带 clarify / human_approval 的完整流程。"""
     initial: AgentState = {
-        "user_input":    user_input,
-        "location":      location,
-        "start_year":    start_year,
-        "end_year":      end_year,
+        "user_input":     user_input,
+        "location":       location,
+        "start_year":     start_year,
+        "end_year":       end_year,
+        "batch_mode":     False,
         "clarify_needed": False,
         "clarify_answer": "",
-        "plan":          [],
-        "findings":      [],
-        "report":        "",
+        "plan":           [],
+        "findings":       [],
+        "report":         "",
     }
     final = await main_graph.ainvoke(initial)
+    return final["report"]
+
+
+async def batch_run(location: str, start_year: int, end_year: int) -> str:
+    """批量模式：跳过 clarify / human_approval，直接执行。用于对照实验。"""
+    initial: AgentState = {
+        "user_input":     f"分析{location} {start_year}-{end_year} 年的城市变化",
+        "location":       location,
+        "start_year":     start_year,
+        "end_year":       end_year,
+        "batch_mode":     True,
+        "clarify_needed": False,
+        "clarify_answer": "",
+        "plan":           [],
+        "findings":       [],
+        "report":         "",
+    }
+    final = await main_graph.ainvoke(
+        initial,
+        config={"configurable": {"thread_id": f"{location}_{start_year}_{end_year}_{id(initial)}"}},
+    )
     return final["report"]

@@ -48,7 +48,7 @@ DeerFlow 2.0、ODR 当前主线和本项目的核心差异不只是“有没有 
 
 源码核对依据：
 
-- DeerFlow 2.0 对比基于 `bytedance/deer-flow` 当前 `main` 分支：README 将其定义为 “super agent harness”；`backend/packages/harness/deerflow/client.py` 中 `DeerFlowClient._ensure_agent()` 创建 Lead Agent；`tools/tools.py` 在 `subagent_enabled=True` 时加入 `task_tool`；`tools/builtins/task_tool.py` 中 `task(description, prompt, subagent_type)` 会创建 `SubagentExecutor` 并异步执行 subagent；`agents/lead_agent/prompt.py` 的 subagent prompt 要求 Lead Agent “DECOMPOSE, DELEGATE, SYNTHESIZE”。
+- DeerFlow 2.0 对比基于 `bytedance/deer-flow` 当前 `main` 分支：README 将其定义为 “super agent harness”；`backend/packages/harness/deerflow/client.py` 中 `DeerFlowClient._ensure_agent()` 是类型无关的通用 agent 创建方法，当 `agent_name` 配置为 `lead_agent` 时才创建 Lead Agent；`backend/packages/harness/deerflow/tools/tools.py` 在 `subagent_enabled=True` 时加入 `task_tool`；`backend/packages/harness/deerflow/tools/builtins/task_tool.py` 中 `task(description, prompt, subagent_type)` 会创建 `SubagentExecutor` 并异步执行 subagent（另有 `runtime`、`tool_call_id` 两个框架注入参数，不由 LLM 提供）；`backend/packages/harness/deerflow/agents/lead_agent/prompt.py` 的 subagent prompt 要求 Lead Agent “DECOMPOSE, DELEGATE, SYNTHESIZE”。
 - ODR 对比基于 `langchain-ai/open_deep_research` 当前主线：主图是 `clarify_with_user → write_research_brief → research_supervisor → final_report_generation`；Supervisor 绑定 `ConductResearch`、`ResearchComplete`、`think_tool`，在运行时通过 `ConductResearch` tool call 动态委派研究主题，并用 `asyncio.gather()` 并发执行多个 researcher subgraph。
 - 本项目对比基于当前仓库：`graph/main_graph.py` 中 `planner_node → human_approval_node → dispatch_researchers()`，其中 `dispatch_researchers()` 用 LangGraph `Send()` 对确认后的 `plan` 并发派发；`graph/researcher_graph.py` 中每个 Researcher 是 `create_react_agent`，工具集固定为 `web_search`、`analyze_satellite_image`、`query_poi_history`。
 
@@ -171,17 +171,18 @@ planner
     ✏ 修改 → 更新计划后执行（支持自然语言描述或 JSON）
     │
     ▼ Send() 并发派发
-┌─────────────────────────────────────────────────────┐
-│   Researcher × N（各自独立上下文，并发执行）           │
-│                                                     │
-│   工具集：                                           │
-│     web_search           DDGS 网页搜索               │
-│     analyze_satellite ★  GEE 卫星图 + 视觉描述       │
-│     query_poi_history ★  ohsome OSM 历史计数         │
-│                                                     │
-│   每个 Researcher 聚焦一个子任务，自主调用工具          │
-│   同一方向最多搜索 3 次，找不到则记录数据缺失           │
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│   Researcher × N（各自独立上下文，并发执行）                   │
+│                                                              │
+│   Evidence-driven ReAct 循环：                               │
+│     web_search     → 语义证据（source_score 0.3-1.0）        │
+│     web_fetch      → 精读权威全文（Jina / MCP fallback）      │
+│     satellite ★    → 空间证据（像素级视觉观察）               │
+│     poi_history ★  → 实体证据（ohsome 0.8 / 高德 1.0）       │
+│                                                              │
+│   证据冲突时触发三步仲裁，>30 轮未定论输出冲突声明             │
+│   runtime 计数器全程追踪工具调用轮次                          │
+└──────────────────────────────────────────────────────────────┘
     │ findings 追加到主图 state
     ▼
 reporter
@@ -233,6 +234,25 @@ reporter
 - **用途：** 建立背景知识、获取政策/新闻/统计报道
 - **关键词约束：** 4-6 个词，不写完整句子
 - **搜索限制：** 同一方向最多 3 次，超过则记录"数据缺失"
+- **来源评分：** 每条结果附带 `source_score`（0.3–1.0）和 `source_label`，结果按分数降序排列，LLM 优先看到高权威来源
+
+| 来源类型 | source_score | source_label |
+|---------|-------------|-------------|
+| 国家统计局 | 1.0 | 国家统计局 |
+| 政府官网（.gov.cn） | 0.95 | 政府官网 |
+| 官方媒体（新华/人民/央视） | 0.85 | 官方媒体 |
+| 高校/科研机构（.edu.cn / .ac.cn / cnki） | 0.80 | 学术机构 |
+| 门户/聚合（新浪/搜狐/今日头条） | 0.45 | 门户/聚合 |
+| 其他 | 0.40 | 普通网站 |
+
+### web_fetch
+
+- **用途：** 精读 web_search 返回的重要链接，获取摘要之外的完整正文、数据表格、政策原文
+- **抓取策略（双层 fallback）：**
+  1. **Jina AI**（`r.jina.ai`）— 境外服务器，走本机代理，直接返回 Markdown
+  2. **MCP fetch**（`uvx mcp-server-fetch`）— 本机进程，Jina 超时时自动触发，能访问国内网站
+- **触发时机：** 来源域名权威（gov.cn、stats.gov.cn 等）或摘要含具体数字/政策名称时调用
+- **依赖：** `mcp`（Python 客户端）+ `uvx`（运行 mcp-server-fetch，无需单独安装）
 
 ### analyze_satellite_image ★
 
@@ -243,34 +263,67 @@ reporter
 
 ### query_poi_history ★
 
-- **数据源：** ohsome API（OSM 历史快照，HeiGIT/海德堡大学，国内可达）
-- **流程：** 高德 geocode → ohsome 查历史计数 → 返回起止年份数量及变化率
+- **数据源：** ohsome API（OSM 历史快照，HeiGIT/海德堡大学，国内可达）+ 高德实时 POI（fallback）
 - **支持类别：** `building` / `road_primary` / `road_secondary` / `hospital` / `school` / `residential` / `commercial` / `park` / `water` / `industrial`
-- **geocode 失败时：** 返回提示信息，要求 LLM 换更具体的行政区划名称重试
+- **三条独立路径：**
+
+```
+路径 A — ohsome（历史对比，置信度 0.8）
+  高德 geocode → 构造 bbox → ohsome 查 start_year / end_year 两端计数
+  → 有数据：返回变化量 + 变化率，置信度 0.8
+
+路径 B — 高德实时 fallback（当前快照，置信度 1.0）
+  触发条件：
+    ① geocode 失败（直接跳过 ohsome，仍可用高德中文地名查询）
+    ② ohsome 两端均为 0（OSM 中国覆盖不足）
+  高德 place/text API，直接传中文地名，无需 geocode
+  → 有数据：返回当前 POI 总数，注明"仅当前快照，无历史对比"
+  注：building / road / water 无高德类型映射，不走此路径
+
+路径 C — 无数据
+  两条路径均无有效数据 → 返回置信度 0.0，建议改用 web_search
+```
 
 ---
 
-## 工具选择策略
+## Evidence-driven ReAct 循环
 
-Researcher 按以下顺序决定调用哪个工具：
+Researcher 不是固定流水线，而是基于当前证据状态动态决定下一步。每类工具提供不同维度的证据：
+
+| 证据类型 | 工具 | 触发时机 |
+|---------|------|---------|
+| 语义证据 | `web_search` + `web_fetch` | 先调用，建立背景；搜到权威域名或具体数字时精读全文 |
+| 空间证据 | `analyze_satellite_image` | 文字证据提到空间/物理变化时，视觉验证 |
+| 实体证据 | `query_poi_history` | 有定性结论需量化支撑时调用 |
+
+### 证据置信度
 
 ```
-1. web_search（必选，先建立文字背景）
-
-2. analyze_satellite_image（可选）
-   → 当文字证据提到空间/物理变化时调用做视觉确认
-   → 注意：返回像素级观察，需结合其他证据才能得出结论
-
-3. query_poi_history（可选）
-   → 有定性结论需要量化支撑时调用
-   → OSM 中国覆盖率有限，返回 0 时改用 web_search
-
-置信度：
-  三路证据互相印证 → 高，明确陈述
-  两路证据          → 中，正常陈述
-  单路证据          → 低，标注不确定性
-  零证据            → 不写入结论，记录数据缺失
+三路证据（语义 + 空间 + 实体）互相印证 → 高，明确陈述
+两路证据支撑                           → 中，正常陈述
+单路证据                               → 低，标注"仅有X证据支持"
+零证据                                 → 不写入结论，说明"该方向证据不足"
 ```
+
+### 证据冲突处理
+
+当两路证据得出相反结论时（如文字报道绿化增加、卫星图显示植被减少），不降级置信度了事，而是触发三步仲裁：
+
+```
+Step 1: 再次 web_search，加"官方数据"或机构名寻找第三方裁定
+Step 2: query_poi_history 获取量化数据作独立仲裁
+Step 3: 再次 analyze_satellite_image（换时间节点或更小区域）
+
+三步仍无法消解，或累计工具调用 > 30 次 →
+  输出：【冲突未解决】证据存在冲突，暂无法定论
+        - 支持"结论A"的证据：...
+        - 支持"结论B"的证据：...
+禁止在冲突未解决时给出确定性结论。
+```
+
+### 轮数追踪
+
+`ResearcherState.runtime` 累计本次工具调用次数（`Annotated[int, operator.add]`），初始 query 注入当前轮数，LLM 全程感知，超 30 轮未定论自动触发冲突声明。
 
 ---
 
@@ -285,6 +338,7 @@ Urban Agent/
 │
 ├── tools/
 │   ├── web_search.py       DDGS 搜索（@tool）
+│   ├── web_fetch.py        网页全文抓取，Jina → MCP fallback（@tool）
 │   ├── satellite.py        GEE 影像 + 视觉描述（@tool）
 │   ├── poi.py              ohsome 历史计数（@tool）
 │   ├── gaode_geocode.py    地名 → 经纬度（高德）
@@ -331,9 +385,12 @@ GAODE_API_KEY=your_key
 # Google Earth Engine
 GEE_PROJECT=ee-yourproject
 
-# 代理（GEE + DDGS 国内必须）
+# 代理（GEE + DDGS + Jina 国内必须；未设置时自动读取系统代理）
 HTTP_PROXY=http://127.0.0.1:7897
 HTTPS_PROXY=http://127.0.0.1:7897
+
+# Jina Reader（可选；未设置时匿名限速 20 RPM）
+# JINA_API_KEY=your_key
 ```
 
 ### 3. GEE 认证（首次）
@@ -366,6 +423,8 @@ python main.py
 | 数据源 | 用途 | 访问方式 |
 |--------|------|---------|
 | DuckDuckGo Search | 网页文字证据 | 无需 Key，需代理 |
+| Jina AI | 网页全文抓取（主） | 无需 Key（限速），需代理 |
+| mcp-server-fetch | 网页全文抓取（fallback） | 本机进程，需 `uvx` |
 | GEE Sentinel-2 | 卫星影像 | 需 GEE 项目 + 代理 |
 | ohsome API | OSM 历史 POI 计数 | 免费，国内可达 |
 | 高德地图 | 地名 → 经纬度 | 需 API Key |
@@ -385,10 +444,11 @@ class AgentState(TypedDict):
     location: str
     start_year: int
     end_year: int
+    batch_mode: bool                               # True 时跳过 clarify/human_approval
     clarify_needed: bool
     clarify_answer: str
     plan: list[ResearchTask]
-    findings: Annotated[list[str], operator.add]  # 并发写入
+    findings: Annotated[list[str], operator.add]  # 并发写入，operator.add 自动追加
     report: str
 
 class ResearcherState(TypedDict):
@@ -397,6 +457,7 @@ class ResearcherState(TypedDict):
     start_year: int
     end_year: int
     findings: str
+    runtime: Annotated[int, operator.add]          # 累计工具调用次数
 ```
 
 ---
@@ -425,10 +486,13 @@ langgraph
 langchain
 langchain-openai
 langchain-core
-duckduckgo-search
+ddgs
 earthengine-api
 httpx
 requests
 pydantic
 python-dotenv
+mcp           # MCP 客户端，web_fetch fallback 用
 ```
+
+> `mcp-server-fetch` 通过 `uvx` 按需拉取运行，无需加入 requirements.txt。
