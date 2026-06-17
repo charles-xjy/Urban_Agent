@@ -23,6 +23,11 @@ class AgentState(TypedDict):
     plan: list[ResearchTask]     # Planner 初稿，用户可修改
     # ── researcher（并发写入，用 operator.add 追加）──────────────────────────
     findings: Annotated[list[str], operator.add]
+    # ── gap 评估（资料充分性判断）────────────────────────────────────────────
+    research_round: int                 # 已完成的研究轮次（每批 researcher 后 +1）
+    gap_analysis: str                   # 模型对资料缺口/充分性的判断说明
+    supplement_plan: list[ResearchTask] # 模型建议的补充研究任务（空=无需补充）
+    supplement_decision: str            # 用户审批结果："report" | "collect"
     # ── 最终 ──────────────────────────────────────────────────────────────────
     report: str
 
