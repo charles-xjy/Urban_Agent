@@ -63,11 +63,13 @@ async def _parse_query(text: str) -> dict | None:
 # ── 流式运行 + 进度打印 ───────────────────────────────────────────────────────
 
 _NODE_LABEL = {
-    "clarify":        "澄清问题",
-    "planner":        "制定计划",
-    "human_approval": "等待确认",
-    "researcher":     "研究员",
-    "reporter":       "生成报告",
+    "clarify":             "澄清问题",
+    "planner":             "制定计划",
+    "human_approval":      "等待确认",
+    "researcher":          "研究员",
+    "gap_eval":            "资料审核",
+    "supplement_approval": "补充审批",
+    "reporter":            "生成报告",
 }
 
 
@@ -110,6 +112,13 @@ async def _stream_run(initial_state: dict, config: dict) -> str:
                         print("-" * 40)
                         print(finding.strip())
                         print("-" * 40)
+
+                elif node_name == "gap_eval":
+                    gap = updates.get("gap_analysis", "")
+                    supp = updates.get("supplement_plan", [])
+                    print(f"\n[{label}] 第 {updates.get('research_round', '?')} 轮 — {gap}")
+                    if supp:
+                        print(f"[{label}] 建议补充 {len(supp)} 个维度")
 
                 elif node_name == "reporter":
                     report = updates.get("report", "")
@@ -184,6 +193,10 @@ async def main():
             "clarify_answer": "",
             "plan":           [],
             "findings":       [],
+            "research_round":      0,
+            "gap_analysis":        "",
+            "supplement_plan":     [],
+            "supplement_decision": "",
             "report":         "",
         }
 

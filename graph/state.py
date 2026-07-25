@@ -15,6 +15,7 @@ class AgentState(TypedDict):
     location: str
     start_year: int
     end_year: int
+    batch_mode: bool              # True 时跳过 clarify/human_approval，用于批量实验
     # ── clarify ───────────────────────────────────────────────────────────────
     clarify_needed: bool         # 是否需要追问
     clarify_answer: str          # 用户回答（空串表示未追问）
@@ -22,6 +23,11 @@ class AgentState(TypedDict):
     plan: list[ResearchTask]     # Planner 初稿，用户可修改
     # ── researcher（并发写入，用 operator.add 追加）──────────────────────────
     findings: Annotated[list[str], operator.add]
+    # ── gap 评估（资料充分性判断）────────────────────────────────────────────
+    research_round: int                 # 已完成的研究轮次（每批 researcher 后 +1）
+    gap_analysis: str                   # 模型对资料缺口/充分性的判断说明
+    supplement_plan: list[ResearchTask] # 模型建议的补充研究任务（空=无需补充）
+    supplement_decision: str            # 用户审批结果："report" | "collect"
     # ── 最终 ──────────────────────────────────────────────────────────────────
     report: str
 
@@ -32,4 +38,5 @@ class ResearcherState(TypedDict):
     location: str
     start_year: int
     end_year: int
-    findings: str   # 本 Researcher 的 findings，写完后 Send 回主图
+    findings: str
+    runtime: Annotated[int, operator.add]  # 累计工具调用次数，每次 on_tool_end +1

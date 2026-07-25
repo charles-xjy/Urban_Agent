@@ -151,6 +151,9 @@ def apply_model_config(assignments: dict[str, dict]) -> None:
     AGENT_MODEL_NAME = os.getenv("AGENT_MODEL_NAME") or AGENT_MODEL_NAME
     CLAIM_MODEL_NAME = os.getenv("CLAIM_MODEL_NAME") or CLAIM_MODEL_NAME
 
+# ── Jina Reader ───────────────────────────────────────────────────────────────
+JINA_API_KEY = os.getenv("JINA_API_KEY", "")
+
 # ── 高德 ──────────────────────────────────────────────────────────────────────
 GAODE_API_KEY = os.getenv("GAODE_API_KEY", "")
 
