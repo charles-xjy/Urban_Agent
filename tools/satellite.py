@@ -16,18 +16,13 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 
-from config.settings import (
-    CLAIM_MODEL_NAME,
-    CLAIM_MODEL_URL,
-    VLLM_API_KEY,
-    IMAGE_SAVE_DIR,
-)
+import config.settings as settings
 from tools.gaode_geocode import _geocode
 from tools.google_earth import _download_one
 
 logger = logging.getLogger(__name__)
 
-BASELINE_DIR = Path(IMAGE_SAVE_DIR).parent / "baselines"
+BASELINE_DIR = Path(settings.IMAGE_SAVE_DIR).parent / "baselines"
 
 _VISUAL_SYSTEM = """\
 比较两张卫星图像，只描述你直接观察到的像素级变化。
@@ -52,9 +47,9 @@ def _img_to_base64(path: str) -> str:
 
 def _small_model() -> ChatOpenAI:
     return ChatOpenAI(
-        base_url=CLAIM_MODEL_URL,
-        api_key=VLLM_API_KEY,
-        model=CLAIM_MODEL_NAME,
+        base_url=settings.CLAIM_MODEL_URL,
+        api_key=settings.VLLM_API_KEY,
+        model=settings.CLAIM_MODEL_NAME,
         temperature=0,
         max_tokens=4096,
     )

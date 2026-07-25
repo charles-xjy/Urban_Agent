@@ -21,7 +21,7 @@ from langgraph.constants import Send
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
 
-from config.settings import AGENT_MODEL_NAME, AGENT_MODEL_URL, VLLM_API_KEY
+import config.settings as settings
 from graph.researcher_graph import researcher_node
 from graph.state import AgentState, ResearchTask, ResearcherState
 
@@ -31,9 +31,9 @@ logger = logging.getLogger(__name__)
 
 def _llm(temperature: float = 0, max_tokens: int = 512) -> ChatOpenAI:
     return ChatOpenAI(
-        base_url=AGENT_MODEL_URL,
-        api_key=VLLM_API_KEY,
-        model=AGENT_MODEL_NAME,
+        base_url=settings.AGENT_MODEL_URL,
+        api_key=settings.VLLM_API_KEY,
+        model=settings.AGENT_MODEL_NAME,
         temperature=temperature,
         max_tokens=max_tokens,
     )
@@ -128,6 +128,7 @@ async def planner_node(state: AgentState) -> AgentState:
 # ── Node 3：human_approval ────────────────────────────────────────────────────
 
 _CONFIRM_WORDS = {"确认", "可以", "ok", "okay", "yes", "y", "行", "好", "没问题", "同意", "开始", "执行"}
+_REJECT_WORDS = {"不对", "取消", "算了", "不要", "退出", "重", "错", "改", "重新"}
 
 _PLAN_EDIT_SYSTEM = """\
 你是研究计划编辑助手。根据当前研究计划和用户的自然语言修改要求，输出修改后的计划。
@@ -156,80 +157,105 @@ async def human_approval_node(state: AgentState) -> AgentState:
       - "确认" / "可以" / "ok" → 直接执行
       - JSON 数组 → 替换整个计划
       - 自然语言修改描述 → 交给 LLM 重新解析计划
+      - "不对" / "取消" / "算了" → 重新展示计划，要求明确指示
     """
     plan = state["plan"]
-    plan_text = "\n".join(
-        f"  Task {t['id'].split('_')[1]}：{t['topic']} — {t['description']}"
-        for t in plan
-    )
-    prompt = (
-        f"我计划从以下维度研究 {state['location']} {state['start_year']}-{state['end_year']} 年的变化：\n\n"
-        f"{plan_text}\n\n"
-        "请确认，或告诉我需要调整哪些维度。"
-    )
+    show_reprompt = False
+    
+    while True:
+        plan_text = "\n".join(
+            f"  Task {t['id'].split('_')[1]}：{t['topic']} — {t['description']}"
+            for t in plan
+        )
+        
+        if show_reprompt:
+            prompt = (
+                f"收到您的反馈。请明确告诉我：\n"
+                f"1. 输入'确认'执行当前计划\n"
+                f"2. 描述需要修改的内容（如'把第一个任务改成...'）\n"
+                f"3. 输入 JSON 数组替换整个计划\n"
+                f"4. 输入'取消'退出\n\n"
+                f"当前计划：\n{plan_text}"
+            )
+        else:
+            prompt = (
+                f"我计划从以下维度研究 {state['location']} {state['start_year']}-{state['end_year']} 年的变化：\n\n"
+                f"{plan_text}\n\n"
+                "请确认，或告诉我需要调整哪些维度。"
+            )
 
-    user_response: str = interrupt(prompt)
+        user_response: str = interrupt(prompt)
 
-    stripped = user_response.strip()
-    normalized = stripped.lower()
-    if not stripped or normalized in _CONFIRM_WORDS:
-        return {"plan": plan}
+        stripped = user_response.strip()
+        normalized = stripped.lower()
+        
+        if not stripped or normalized in _CONFIRM_WORDS:
+            return {"plan": plan}
+        
+        if normalized in {"取消", "退出"}:
+            return {"plan": []}
+        
+        if any(word in normalized for word in _REJECT_WORDS):
+            show_reprompt = True
+            continue
 
-    # 尝试解析用户修改（JSON 格式）
-    if stripped.startswith("["):
+        # 尝试解析用户修改（JSON 格式）
+        if stripped.startswith("["):
+            try:
+                items = json.loads(stripped)
+                new_plan: list[ResearchTask] = [
+                    {
+                        "id": f"task_{i+1}",
+                        "topic": item.get("topic", item.get("t", "")),
+                        "description": item.get("description", item.get("d", "")),
+                    }
+                    for i, item in enumerate(items)
+                    if item.get("topic", item.get("t", "")) and item.get("description", item.get("d", ""))
+                ]
+                if new_plan:
+                    return {"plan": new_plan}
+            except Exception:
+                pass
+
+        edit_context = {
+            "current_plan": [
+                {"topic": t["topic"], "description": t["description"]}
+                for t in plan
+            ],
+            "user_request": stripped,
+        }
+        resp = await _llm(max_tokens=512).ainvoke([
+            SystemMessage(content=_PLAN_EDIT_SYSTEM),
+            HumanMessage(content=json.dumps(edit_context, ensure_ascii=False)),
+        ])
+        raw = re.sub(r"```(?:json)?\s*|\s*```", "", resp.content).strip()
         try:
-            items = json.loads(stripped)
-            new_plan: list[ResearchTask] = [
+            items = json.loads(raw)
+            if isinstance(items, dict):
+                items = [items]
+            new_plan = [
                 {
                     "id": f"task_{i+1}",
                     "topic": item.get("topic", item.get("t", "")),
                     "description": item.get("description", item.get("d", "")),
                 }
-                for i, item in enumerate(items)
+                for i, item in enumerate(items[:4])
                 if item.get("topic", item.get("t", "")) and item.get("description", item.get("d", ""))
             ]
             if new_plan:
                 return {"plan": new_plan}
         except Exception:
-            pass
-
-    edit_context = {
-        "current_plan": [
-            {"topic": t["topic"], "description": t["description"]}
-            for t in plan
-        ],
-        "user_request": stripped,
-    }
-    resp = await _llm(max_tokens=512).ainvoke([
-        SystemMessage(content=_PLAN_EDIT_SYSTEM),
-        HumanMessage(content=json.dumps(edit_context, ensure_ascii=False)),
-    ])
-    raw = re.sub(r"```(?:json)?\s*|\s*```", "", resp.content).strip()
-    try:
-        items = json.loads(raw)
-        if isinstance(items, dict):
-            items = [items]
-        new_plan = [
-            {
-                "id": f"task_{i+1}",
-                "topic": item.get("topic", item.get("t", "")),
-                "description": item.get("description", item.get("d", "")),
-            }
-            for i, item in enumerate(items[:4])
-            if item.get("topic", item.get("t", "")) and item.get("description", item.get("d", ""))
-        ]
-        if new_plan:
-            return {"plan": new_plan}
-    except Exception:
-        logger.warning("计划修改解析失败，用户输入：%s，模型输出：%s", stripped, raw)
-
-    return {"plan": plan}
+            logger.warning("计划修改解析失败，用户输入：%s，模型输出：%s", stripped, raw)
+        
+        show_reprompt = True
 
 
 # ── Node 4：dispatch_researchers（路由函数，返回 Send 列表）────────────────────
 
-def dispatch_researchers(state: AgentState) -> list[Send]:
-    """将每个 ResearchTask 用 Send() 并发派发给 researcher 子图。"""
+def dispatch_researchers(state: AgentState) -> list[Send] | str:
+    """将每个 ResearchTask 用 Send() 并发派发给 researcher 子图。如果计划为空则直接结束。"""
+    if not state["plan"]:
+        return "__end__"
     return [
         Send(
             "researcher",
@@ -291,8 +317,8 @@ def build_main_graph():
     g.add_edge(START,            "clarify")
     g.add_edge("clarify",        "planner")
     g.add_edge("planner",        "human_approval")
-    # human_approval → researcher×N 并发派发
-    g.add_conditional_edges("human_approval", dispatch_researchers, ["researcher"])
+    # human_approval → researcher×N 并发派发，或计划为空时直接结束
+    g.add_conditional_edges("human_approval", dispatch_researchers, ["researcher", "__end__"])
     g.add_edge("researcher",     "reporter")
     g.add_edge("reporter",       END)
 

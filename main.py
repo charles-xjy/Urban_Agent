@@ -24,7 +24,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langgraph.types import Command
 
-from config.settings import AGENT_MODEL_NAME, AGENT_MODEL_URL, VLLM_API_KEY
+import config.settings as settings
 from graph.main_graph import main_graph
 
 
@@ -46,8 +46,8 @@ _PARSE_SYSTEM = f"""\
 
 async def _parse_query(text: str) -> dict | None:
     model = ChatOpenAI(
-        base_url=AGENT_MODEL_URL, api_key=VLLM_API_KEY,
-        model=AGENT_MODEL_NAME, temperature=0, max_tokens=128,
+        base_url=settings.AGENT_MODEL_URL, api_key=settings.VLLM_API_KEY,
+        model=settings.AGENT_MODEL_NAME, temperature=0, max_tokens=128,
     )
     resp = await model.ainvoke([
         SystemMessage(content=_PARSE_SYSTEM),
@@ -134,6 +134,15 @@ async def _stream_run(initial_state: dict, config: dict) -> str:
 # ── 主循环 ────────────────────────────────────────────────────────────────────
 
 async def main():
+    # ── 模型检测与确认 ──────────────────────────────────────────────────────
+    print("正在检测模型服务...")
+    available = settings.scan_models()
+    assignments = settings.confirm_models(available)
+    if not assignments:
+        print("退出")
+        return
+    settings.apply_model_config(assignments)
+
     print("=" * 60)
     print("  城市变化研究智能体")
     print("=" * 60)
@@ -159,6 +168,11 @@ async def main():
         location   = parsed["location"]
         start_year = int(parsed["start_year"])
         end_year   = int(parsed["end_year"])
+        
+        if len(location) < 2 or location.isdigit():
+            print(f"[错误] 地点名称无效：'{location}'，请输入具体的城市或地区名称")
+            continue
+        
         print(f"\n解析结果：{location}  {start_year} → {end_year}")
 
         initial_state = {
@@ -180,6 +194,8 @@ async def main():
             print("【最终报告】")
             print("=" * 60)
             print(report)
+        elif report == "":
+            print("\n[已取消] 未执行研究")
         else:
             print("[错误] 未生成报告")
 

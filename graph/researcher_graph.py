@@ -11,7 +11,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 
-from config.settings import AGENT_MODEL_NAME, AGENT_MODEL_URL, VLLM_API_KEY
+import config.settings as settings
 from graph.state import ResearcherState
 from tools.poi import query_poi_history
 from tools.satellite import analyze_satellite_image
@@ -76,9 +76,9 @@ _RESEARCHER_SYSTEM = """\
 
 def _make_researcher() -> object:
     model = ChatOpenAI(
-        base_url=AGENT_MODEL_URL,
-        api_key=VLLM_API_KEY,
-        model=AGENT_MODEL_NAME,
+        base_url=settings.AGENT_MODEL_URL,
+        api_key=settings.VLLM_API_KEY,
+        model=settings.AGENT_MODEL_NAME,
         temperature=0,
         max_tokens=8192,
     )

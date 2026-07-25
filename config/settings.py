@@ -10,34 +10,146 @@ logger = logging.getLogger(__name__)
 
 # ── vLLM 服务器 ───────────────────────────────────────────────────────────────
 VLLM_BASE = "http://10.129.107.145"
-AGENT_MODEL_URL = f"{VLLM_BASE}:8001/v1"
-CLAIM_MODEL_URL = f"{VLLM_BASE}:8002/v1"
 VLLM_API_KEY = "placeholder"
-
 _NO_PROXY = {"http": None, "https": None}
 
+# 模型用途定义
+MODEL_ROLES = {
+    "agent":  "主模型（clarify / planner / researcher / reporter）",
+    "claim":  "小模型（卫星图视觉描述 + baseline 存档）",
+    "extra":  "备用模型（预留）",
+}
 
-def _fetch_model_name(base_url: str) -> str:
-    """从 vLLM /v1/models 自动获取部署的模型名，失败时返回空字符串。"""
-    try:
-        resp = requests.get(f"{base_url}/models", proxies=_NO_PROXY, timeout=5)
-        data = resp.json()
-        models = data.get("data", [])
-        if models:
-            return models[0]["id"]
-    except Exception as e:
-        logger.warning("获取模型名失败 (%s): %s", base_url, e)
-    return ""
+# 端口 → 用途 默认映射
+PORT_ROLE_MAP = {
+    8001: "agent",
+    8002: "claim",
+    8003: "extra",
+}
 
 
-# 优先读 .env，没有则自动 curl 查询
-AGENT_MODEL_NAME = os.getenv("AGENT_MODEL_NAME") or _fetch_model_name(AGENT_MODEL_URL)
-CLAIM_MODEL_NAME = os.getenv("CLAIM_MODEL_NAME") or _fetch_model_name(CLAIM_MODEL_URL)
+def scan_models() -> dict[int, dict]:
+    """扫描 8001-8003 端口，返回 {port: {"url": ..., "model": ..., "role": ...}}"""
+    available = {}
+    for port, role in PORT_ROLE_MAP.items():
+        url = f"{VLLM_BASE}:{port}/v1"
+        try:
+            resp = requests.get(f"{url}/models", proxies=_NO_PROXY, timeout=3)
+            data = resp.json()
+            models = data.get("data", [])
+            if models:
+                available[port] = {
+                    "url": url,
+                    "model": models[0]["id"],
+                    "role": role,
+                }
+        except Exception:
+            pass
+    return available
 
-if not AGENT_MODEL_NAME:
-    logger.warning("AGENT_MODEL_NAME 未能获取，LLM 调用可能失败")
-if not CLAIM_MODEL_NAME:
-    logger.warning("CLAIM_MODEL_NAME 未能获取，LLM 调用可能失败")
+
+def print_model_status(available: dict[int, dict]) -> None:
+    """打印模型检测结果。"""
+    print("\n" + "=" * 60)
+    print("  模型检测")
+    print("=" * 60)
+    for port in sorted(PORT_ROLE_MAP.keys()):
+        role = PORT_ROLE_MAP[port]
+        role_desc = MODEL_ROLES[role]
+        if port in available:
+            info = available[port]
+            print(f"  [OK] 端口 {port} → {info['model']}")
+            print(f"       用途：{role_desc}")
+        else:
+            print(f"  [--] 端口 {port} → 不可用")
+            print(f"       用途：{role_desc}")
+    print("=" * 60)
+
+
+def confirm_models(available: dict[int, dict]) -> dict[str, str]:
+    """
+    展示可用模型，让用户确认每个用途使用哪个模型。
+    只有一个模型时自动分配，无需确认。
+    返回 {"agent": {...}, "claim": {...}, ...}
+    """
+    if not available:
+        print("\n[错误] 没有检测到任何可用模型，请检查 vLLM 服务是否启动")
+        return {}
+
+    print_model_status(available)
+
+    # 只有一个模型时，自动分配给所有角色，跳过确认
+    if len(available) == 1:
+        port, info = next(iter(available.items()))
+        print(f"\n仅检测到一个模型（端口 {port}: {info['model']}），自动分配给所有角色。")
+        return {
+            role: {"port": port, "model": info["model"], "url": info["url"]}
+            for role in ["agent", "claim"]
+        }
+
+    # 构建默认分配
+    assignments = {}
+    for port, info in available.items():
+        role = info["role"]
+        if role not in assignments:
+            assignments[role] = {"port": port, "model": info["model"], "url": info["url"]}
+
+    # 检查是否有角色缺失
+    missing_roles = [r for r in ["agent", "claim"] if r not in assignments]
+
+    if missing_roles:
+        print(f"\n[警告] 以下角色没有默认模型：{', '.join(missing_roles)}")
+        print("可用模型：")
+        for port, info in available.items():
+            print(f"  {port}: {info['model']}")
+
+        for role in missing_roles:
+            print(f"\n请为 [{MODEL_ROLES[role]}] 选择端口（输入端口号，如 8001）：")
+            choice = input("> ").strip()
+            if choice.isdigit() and int(choice) in available:
+                port = int(choice)
+                assignments[role] = {
+                    "port": port,
+                    "model": available[port]["model"],
+                    "url": available[port]["url"],
+                }
+            else:
+                print(f"[跳过] {role} 未分配模型")
+
+    # 展示最终分配
+    print("\n模型分配确认：")
+    for role, info in assignments.items():
+        print(f"  {MODEL_ROLES[role]}")
+        print(f"    → 端口 {info['port']}: {info['model']}")
+
+    confirm = input("\n确认以上配置？(回车确认 / 输入 q 退出)：").strip()
+    if confirm.lower() in ("q", "quit", "exit"):
+        return {}
+
+    return assignments
+
+
+# ── 运行时模型配置（由 main.py 启动时设置）─────────────────────────────────────
+AGENT_MODEL_URL = ""
+AGENT_MODEL_NAME = ""
+CLAIM_MODEL_URL = ""
+CLAIM_MODEL_NAME = ""
+
+
+def apply_model_config(assignments: dict[str, dict]) -> None:
+    """将用户确认的模型分配应用到全局配置。"""
+    global AGENT_MODEL_URL, AGENT_MODEL_NAME, CLAIM_MODEL_URL, CLAIM_MODEL_NAME
+
+    if "agent" in assignments:
+        AGENT_MODEL_URL = assignments["agent"]["url"]
+        AGENT_MODEL_NAME = assignments["agent"]["model"]
+    if "claim" in assignments:
+        CLAIM_MODEL_URL = assignments["claim"]["url"]
+        CLAIM_MODEL_NAME = assignments["claim"]["model"]
+
+    # 兼容 .env 覆盖
+    AGENT_MODEL_NAME = os.getenv("AGENT_MODEL_NAME") or AGENT_MODEL_NAME
+    CLAIM_MODEL_NAME = os.getenv("CLAIM_MODEL_NAME") or CLAIM_MODEL_NAME
 
 # ── 高德 ──────────────────────────────────────────────────────────────────────
 GAODE_API_KEY = os.getenv("GAODE_API_KEY", "")
