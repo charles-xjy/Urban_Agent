@@ -42,12 +42,14 @@ if _project_root not in sys.path:
 import config.settings as settings  # noqa: E402
 from core.intent import (  # noqa: E402
     invalid_input_clarification,
+    is_explicit_analysis_request,
     is_obviously_invalid_input,
     latest_human_text,
+    normalize_router_type,
 )
 from core.source_merge import (  # noqa: E402
-    has_source_section,
     merge_findings_with_sources,
+    replace_report_sources,
 )
 from core.state_reducers import FINDINGS_RESET, findings_reducer  # noqa: E402
 
@@ -102,6 +104,7 @@ class WebState(TypedDict):
     route: str  # "analysis" | "chat" | "clarify"
     intent_route: str  # 对齐参考：action | chat | clarify，便于路由与调试
     plan: list[dict]
+    plan_approved: bool
     findings: Annotated[list[str], findings_reducer]  # 支持跨轮 reset，见 core/state_reducers.py
     report: str
 
@@ -145,9 +148,10 @@ async def router_node(state: WebState) -> dict:
     """
     入口意图路由（规则 + 模型两层）：
     1. 确定性规则拦截空 / 纯数字 / 乱码 -> 直接 clarify，不调模型
-    2. 其余输入取最近 8 条上下文交模型分类 action/chat/clarify
-    3. 复读、空回复、JSON 解析失败 -> 兜底
-    4. action 时重置上一轮任务状态（findings/plan/report），避免同线程跨轮继承
+    2. 明确时间范围 + 分析意图的请求直接进入 action，避免模型误判
+    3. 其余输入取最近 8 条上下文交模型分类 action/chat/clarify
+    4. 复读、空回复、JSON 解析失败 -> 兜底
+    5. action 时重置上一轮任务状态（findings/plan/report），避免同线程跨轮继承
     """
     messages = state.get("messages", [])
     last_human = latest_human_text(messages)
@@ -160,7 +164,18 @@ async def router_node(state: WebState) -> dict:
             "intent_route": "clarify",
         }
 
-    # 2. 模型分类：传最近 8 条，使连续确认能结合上一轮追问理解
+    # 2. 明确分析请求走确定性快路径，不让 LLM 把清晰输入误判成 clarify。
+    if is_explicit_analysis_request(last_human):
+        return {
+            "route": "analysis",
+            "intent_route": "action",
+            "user_input": last_human,
+            "plan": [],
+            "findings": [FINDINGS_RESET],
+            "report": "",
+        }
+
+    # 3. 模型分类：传最近 8 条，使连续确认能结合上一轮追问理解
     recent = messages[-8:]
     resp = await _llm(max_tokens=256).ainvoke([
         SystemMessage(content=_ROUTER_SYSTEM),
@@ -172,7 +187,7 @@ async def router_node(state: WebState) -> dict:
     except Exception:
         result = {}
 
-    route_type = result.get("type", "clarify")
+    route_type = normalize_router_type(result.get("type"))
 
     if route_type == "chat":
         reply = str(result.get("reply", "")).strip()
@@ -184,7 +199,7 @@ async def router_node(state: WebState) -> dict:
             "intent_route": "chat",
         }
 
-    if route_type == "analysis":
+    if route_type == "action":
         # 重置上一轮任务状态，避免同线程连续分析时 findings 跨轮继承
         return {
             "route": "analysis",
@@ -330,6 +345,7 @@ async def web_planner_node(state: WebState) -> dict:
 
     return {
         "plan": plan,
+        "plan_approved": False,
         "messages": [AIMessage(content=msg)],
     }
 
@@ -337,87 +353,144 @@ async def web_planner_node(state: WebState) -> dict:
 # ── 7. Human Approval 节点 ────────────────────────────────────────────────────
 
 _CONFIRM_WORDS = {"确认", "可以", "ok", "okay", "yes", "y", "行", "好", "没问题", "同意", "开始", "执行"}
+_MAX_PLAN_TASKS = 8
 
 _PLAN_EDIT_SYSTEM = """\
 你是研究计划编辑助手。根据当前研究计划和用户的修改要求，输出修改后的计划。
-规则：保留未要求修改的任务，总数 2-4 个，输出 JSON 数组。
+规则：
+- 这是对当前计划的修订，不是新的研究请求。研究地点、时间范围和原始主题不可改变。
+- “增加/再加/补充一个维度”表示逐字保留全部现有任务，并在末尾新增任务；不得重写或删除原任务。
+- 只有用户明确要求删除、替换或修改的任务才可以变更。
+- 例如研究主题是“雄安城市变化”，用户说“再加一个学校层面的维度”，应新增“教育资源与学校建设”等城市教育维度，不能把整个主题改成“校园变化”。
+- 修改后总数为 2-8 个。
+- 只输出 JSON 数组，每项包含 topic 和 description，不要输出其他文字。
 """
+
+
+def _normalize_plan_items(items: object) -> list[dict]:
+    if isinstance(items, dict):
+        items = [items]
+    if not isinstance(items, list):
+        return []
+
+    normalized = []
+    for item in items[:_MAX_PLAN_TASKS]:
+        if not isinstance(item, dict):
+            continue
+        topic = str(item.get("topic", "")).strip()
+        description = str(item.get("description", "")).strip()
+        if topic and description:
+            normalized.append(
+                {
+                    "id": f"task_{len(normalized) + 1}",
+                    "topic": topic,
+                    "description": description,
+                }
+            )
+    return normalized
+
+
+def _plan_summary(plan: list[dict], prefix: str) -> str:
+    plan_text = "\n".join(
+        f"  Task {i}：{task['topic']} — {task['description']}"
+        for i, task in enumerate(plan, start=1)
+    )
+    return f"{prefix} {len(plan)} 个研究方向：\n{plan_text}"
 
 
 async def web_human_approval_node(state: WebState) -> dict:
     plan = state["plan"]
+    plan_text = "\n".join(
+        f"  Task {i}：{task['topic']} — {task['description']}"
+        for i, task in enumerate(plan, start=1)
+    )
+    prompt = (
+        f"我计划从以下维度研究 {state['location']} {state['start_year']}-{state['end_year']} 年的变化：\n\n"
+        f"{plan_text}\n\n"
+        "请确认，或告诉我需要调整哪些维度。"
+    )
 
-    while True:
-        plan_text = "\n".join(
-            f"  Task {t['id'].split('_')[1]}：{t['topic']} — {t['description']}"
-            for t in plan
-        )
-        prompt = (
-            f"我计划从以下维度研究 {state['location']} {state['start_year']}-{state['end_year']} 年的变化：\n\n"
-            f"{plan_text}\n\n"
-            "请确认，或告诉我需要调整哪些维度。"
-        )
+    user_response: str = interrupt(prompt)
+    stripped = user_response.strip()
+    normalized = stripped.lower()
+    human_message = [HumanMessage(content=stripped)] if stripped else []
 
-        user_response: str = interrupt(prompt)
-        stripped = user_response.strip()
-        normalized = stripped.lower()
+    if not stripped or normalized in _CONFIRM_WORDS:
+        return {
+            "plan": plan,
+            "plan_approved": True,
+            "messages": human_message,
+        }
 
-        if not stripped or normalized in _CONFIRM_WORDS:
-            return {"plan": plan}
+    if normalized in {"取消", "退出", "算了"}:
+        return {
+            "plan": [],
+            "plan_approved": False,
+            "messages": human_message + [AIMessage(content="好的，已取消本次分析。")],
+        }
 
-        if normalized in {"取消", "退出", "算了"}:
-            return {
-                "plan": [],
-                "messages": [AIMessage(content="好的，已取消本次分析。")],
-            }
-
-        # JSON 替换
-        if stripped.startswith("["):
-            try:
-                items = json.loads(stripped)
-                new_plan = [
-                    {"id": f"task_{i+1}", "topic": it.get("topic", ""), "description": it.get("description", "")}
-                    for i, it in enumerate(items[:4])
-                    if it.get("topic") and it.get("description")
-                ]
-                if new_plan:
-                    plan = new_plan
-                    return {"plan": plan}
-            except Exception:
-                pass
-
-        # LLM 编辑
-        edit_context = json.dumps({
-            "current_plan": [{"topic": t["topic"], "description": t["description"]} for t in plan],
-            "user_request": stripped,
-        }, ensure_ascii=False)
-        resp = await _llm(max_tokens=512).ainvoke([
-            SystemMessage(content=_PLAN_EDIT_SYSTEM),
-            HumanMessage(content=edit_context),
-        ])
-        raw = re.sub(r"```(?:json)?\s*|\s*```", "", resp.content).strip()
+    # JSON 整体替换
+    if stripped.startswith("["):
         try:
-            items = json.loads(raw)
-            if isinstance(items, dict):
-                items = [items]
-            new_plan = [
-                {"id": f"task_{i+1}", "topic": it.get("topic", ""), "description": it.get("description", "")}
-                for i, it in enumerate(items[:4])
-                if it.get("topic") and it.get("description")
-            ]
+            new_plan = _normalize_plan_items(json.loads(stripped))
             if new_plan:
-                plan = new_plan
-                return {"plan": plan}
+                return {
+                    "plan": new_plan,
+                    "plan_approved": False,
+                    "messages": human_message + [
+                        AIMessage(content=_plan_summary(new_plan, "已按你的要求更新为"))
+                    ],
+                }
         except Exception:
             pass
 
-        # 解析失败，重新提示
-        continue
+    # 自然语言增量编辑；显式携带原始研究上下文，避免把编辑要求误当成新主题。
+    edit_context = json.dumps(
+        {
+            "research_context": {
+                "location": state["location"],
+                "start_year": state["start_year"],
+                "end_year": state["end_year"],
+                "original_request": state["user_input"],
+            },
+            "current_plan": [{"topic": t["topic"], "description": t["description"]} for t in plan],
+            "edit_request": stripped,
+        },
+        ensure_ascii=False,
+    )
+    resp = await _llm(max_tokens=768).ainvoke([
+        SystemMessage(content=_PLAN_EDIT_SYSTEM),
+        HumanMessage(content=edit_context),
+    ])
+    raw = re.sub(r"```(?:json)?\s*|\s*```", "", resp.content).strip()
+    try:
+        new_plan = _normalize_plan_items(json.loads(raw))
+    except Exception:
+        new_plan = []
+
+    if new_plan:
+        return {
+            "plan": new_plan,
+            "plan_approved": False,
+            "messages": human_message + [
+                AIMessage(content=_plan_summary(new_plan, "已按你的要求更新为"))
+            ],
+        }
+
+    return {
+        "plan": plan,
+        "plan_approved": False,
+        "messages": human_message + [
+            AIMessage(content="我没能解析这次修改，原计划已保留。请换一种说法说明要增加、删除或修改的维度。")
+        ],
+    }
 
 
 def dispatch_researchers(state: WebState) -> list[Send] | str:
     if not state["plan"]:
         return "__end__"
+    if not state.get("plan_approved", False):
+        return "web_human_approval"
     return [
         Send("web_researcher", {
             "messages": state["messages"],
@@ -461,6 +534,8 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
     agent = _make_researcher()
     findings = ""
     progress_msgs = []
+    search_groups = []
+    tool_results = []
     # 实时进度写回流（前端 onCustomEvent 接住）。非流式环境下 writer 是 no-op。
     try:
         writer = get_stream_writer()
@@ -481,6 +556,41 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
             })
         except Exception:
             pass  # 进度事件失败不影响研究流程
+
+    def _tool_output_preview(value: object, limit: int = 1200) -> str:
+        text = str(value).strip()
+        text = re.sub(r"\n{3,}", "\n\n", text)
+        if len(text) > limit:
+            return f"{text[:limit].rstrip()}…"
+        return text
+
+    def _parse_search_group(value: object) -> dict | None:
+        try:
+            data = json.loads(str(value))
+        except Exception:
+            return None
+        if not isinstance(data, dict):
+            return None
+
+        raw_results = data.get("results")
+        results = []
+        if isinstance(raw_results, list):
+            for item in raw_results[:5]:
+                if not isinstance(item, dict):
+                    continue
+                results.append({
+                    "title": str(item.get("title", "")).strip()[:180],
+                    "url": str(item.get("url", "")).strip(),
+                    "snippet": str(item.get("snippet", "")).strip()[:260],
+                    "source_label": str(item.get("source_label", "")).strip(),
+                })
+
+        return {
+            "query": str(data.get("query", "")).strip(),
+            "total": int(data.get("total", len(results)) or 0),
+            "error": str(data.get("error", "")).strip(),
+            "results": results,
+        }
 
     try:
         async for event in agent.astream_events(
@@ -512,11 +622,36 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
                 else:
                     output_str = str(output)
                 if name == "web_search":
-                    progress_msgs.append(f"搜索完成")
-                    _emit("search_done", "搜索完成")
+                    search_group = _parse_search_group(output_str)
+                    if search_group:
+                        search_groups.append(search_group)
+                        query = search_group["query"] or "当前关键词"
+                        count = len(search_group["results"])
+                        detail = f"搜索完成：{query}（{count} 条有效结果）"
+                        progress_msgs.append(detail)
+                        _emit("search_done", detail)
+                        if search_group["results"]:
+                            titles = "\n".join(
+                                f"{i}. {item['title']}"
+                                for i, item in enumerate(
+                                    search_group["results"][:3],
+                                    start=1,
+                                )
+                            )
+                            _emit("search_result", f"结果概览：\n{titles}")
+                    else:
+                        progress_msgs.append("搜索完成")
+                        _emit("search_done", "搜索完成")
                 elif name in ("analyze_satellite_image", "query_poi_history"):
                     progress_msgs.append(f"{name} 完成")
                     _emit("tool_done", f"{name} 完成")
+                    result_preview = _tool_output_preview(output_str, limit=600)
+                    if result_preview:
+                        tool_results.append({
+                            "tool": name,
+                            "summary": result_preview,
+                        })
+                        _emit("tool_result", f"{name} 已生成结果摘要")
 
             elif kind == "on_chat_model_end":
                 msg = event.get("data", {}).get("output")
@@ -532,9 +667,22 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
     # 完成：通知前端该 task 进度结束（卡片消息随之到达）
     _emit("complete", f"研究完成（共 {len(progress_msgs)} 步）")
 
-    # 输出折叠卡片内容
-    progress_text = "\n".join(f"  • {p}" for p in progress_msgs)
-    card_content = f"【{topic} 执行结果】\n研究过程：\n{progress_text}\n\n{findings}"
+    # 使用结构化 payload，避免把长 JSON 直接混排进 Markdown。
+    task_number = task["id"].removeprefix("task_")
+    card_payload = json.dumps(
+        {
+            "version": 2,
+            "process": progress_msgs,
+            "searches": search_groups,
+            "tools": tool_results,
+            "findings": findings,
+        },
+        ensure_ascii=False,
+    )
+    card_content = (
+        f"【Agent {task_number} · {topic} 执行结果】\n"
+        f"{card_payload}"
+    )
 
     return {
         "messages": [AIMessage(content=card_content, name="internal")],
@@ -581,9 +729,8 @@ async def web_reporter_node(state: WebState) -> dict:
     ])
     report = resp.content
 
-    # LLM 漏掉来源列表 -> 追加统一列表（不重新编号）
-    if merged.sources and not has_source_section(report):
-        report = f"{report.rstrip()}\n\n{merged.sources_md}"
+    # 始终使用统一来源，并仅保留正文实际引用的编号。
+    report = replace_report_sources(report, merged.sources)
 
     return {
         "report": report,
@@ -607,7 +754,11 @@ def build_web_graph():
     g.add_conditional_edges("router", route_after_router, ["parse_input", "__end__"])
     g.add_conditional_edges("parse_input", route_after_parse, ["web_planner", "__end__"])
     g.add_edge("web_planner", "web_human_approval")
-    g.add_conditional_edges("web_human_approval", dispatch_researchers, ["web_researcher", "__end__"])
+    g.add_conditional_edges(
+        "web_human_approval",
+        dispatch_researchers,
+        ["web_human_approval", "web_researcher", "__end__"],
+    )
     g.add_edge("web_researcher", "web_reporter")
     g.add_edge("web_reporter", END)
 

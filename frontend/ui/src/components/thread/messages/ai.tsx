@@ -16,7 +16,15 @@ import { useQueryState, parseAsBoolean } from "nuqs";
 import { GenericInterruptView } from "./generic-interrupt";
 import { useArtifact } from "../artifact";
 import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  ExternalLink,
+  FileText,
+  ListChecks,
+  Search,
+} from "lucide-react";
 /** 去除思考过程，只返回 </think> 之后的正文 */
 function stripThinkContent(text: string): string {
   const closeTag = "</think>";
@@ -31,60 +39,278 @@ function extractImageFiles(text: string): string[] {
   return [...new Set(matches)];
 }
 
+type AgentSearchResult = {
+  title: string;
+  url: string;
+  snippet: string;
+  source_label: string;
+};
+
+type AgentSearchGroup = {
+  query: string;
+  total: number;
+  error: string;
+  results: AgentSearchResult[];
+};
+
+type AgentCardPayload = {
+  version: number;
+  process: string[];
+  searches: AgentSearchGroup[];
+  tools: Array<{ tool: string; summary: string }>;
+  findings: string;
+};
+
+function parseAgentCardPayload(content: string): AgentCardPayload {
+  try {
+    const parsed = JSON.parse(content) as Partial<AgentCardPayload>;
+    if (parsed.version === 2) {
+      return {
+        version: 2,
+        process: Array.isArray(parsed.process) ? parsed.process : [],
+        searches: Array.isArray(parsed.searches) ? parsed.searches : [],
+        tools: Array.isArray(parsed.tools) ? parsed.tools : [],
+        findings: typeof parsed.findings === "string" ? parsed.findings : "",
+      };
+    }
+  } catch {
+    // 兼容旧线程的纯文本卡片。
+  }
+
+  const process = [
+    ...content.matchAll(/•\s*(正在搜索：[^\n]+|正在分析卫星影像[.…]*|正在查询 POI 数据[^\n]*)/g),
+  ].map((match) => match[1].trim());
+  const markerIndexes = ["【研究结论", "根据已有证据"]
+    .map((marker) => content.indexOf(marker))
+    .filter((index) => index >= 0);
+  const findingsStart =
+    markerIndexes.length > 0 ? Math.min(...markerIndexes) : -1;
+
+  return {
+    version: 1,
+    process: [...new Set(process)],
+    searches: [],
+    tools: [],
+    findings:
+      findingsStart >= 0
+        ? content.slice(findingsStart).trim()
+        : "旧版研究记录未结构化；请重新运行该任务以查看分区结果。",
+  };
+}
+
 /** 可折叠的 Researcher 输出卡片 */
 function AgentOutputCard({ topic, status, content }: { topic: string; status: string; content: string }) {
   const [open, setOpen] = useState(false);
   const isComplete = status === "执行结果";
-  const label = isComplete ? `✅ ${topic}` : `⏳ ${topic}`;
-  const preview = content.replace(/\n+/g, " ").slice(0, 80);
+  const payload = parseAgentCardPayload(content);
   const imageFiles = extractImageFiles(content);
+  const sourceCount = payload.searches.reduce(
+    (total, group) => total + group.results.length,
+    0,
+  );
+  const searchTaskCount =
+    payload.searches.length ||
+    payload.process.filter((step) => step.startsWith("正在搜索：")).length;
 
   return (
-    <div className="rounded-lg border border-border/40 bg-muted/15 text-sm">
+    <div className="overflow-hidden rounded-xl border border-border/50 bg-background text-sm shadow-sm">
       <button
-        className="flex w-full items-center gap-2 px-3 py-2 text-left"
+        type="button"
+        aria-expanded={open}
+        className="flex w-full items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-muted/35"
         onClick={() => setOpen((v) => !v)}
       >
         {open ? (
-          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-foreground/40" />
+          <ChevronDown className="h-4 w-4 shrink-0 text-foreground/40" />
         ) : (
-          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-foreground/40" />
+          <ChevronRight className="h-4 w-4 shrink-0 text-foreground/40" />
         )}
-        <span className="font-medium text-foreground/60">{label}</span>
-        {!open && (
-          <span className="ml-1 truncate text-xs text-foreground/35">{preview}</span>
-        )}
+        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+        <span className="min-w-0 flex-1 truncate font-medium text-foreground/75">
+          {topic}
+        </span>
+        <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+          {isComplete ? "已完成" : "运行中"}
+        </span>
       </button>
 
-      {/* 卫星图片缩略图网格 */}
-      {imageFiles.length > 0 && (
-        <div className="border-t border-border/30 px-3 py-2">
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
-            {imageFiles.map((file) => (
-              <a
-                key={file}
-                href={`/api/local-image?file=${encodeURIComponent(file)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative"
-              >
-                <img
-                  src={`/api/local-image?file=${encodeURIComponent(file)}`}
-                  alt={file}
-                  className="aspect-square w-full rounded object-cover transition-opacity group-hover:opacity-80"
-                />
-                <span className="absolute bottom-0 left-0 right-0 truncate rounded-b bg-black/50 px-1 py-0.5 text-center text-[10px] text-white">
-                  {file.match(/_(\d{4})\./)?.[1] ?? file}
-                </span>
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
-
       {open && (
-        <div className="border-t border-border/30 px-3 py-2 text-foreground/70">
-          <MarkdownText>{content}</MarkdownText>
+        <div className="flex flex-col gap-5 border-t border-border/40 bg-muted/10 px-4 py-4">
+          <div className="grid grid-cols-3 gap-2">
+            <div className="rounded-lg border border-border/40 bg-background px-3 py-2">
+              <p className="text-[11px] text-foreground/45">执行步骤</p>
+              <p className="mt-0.5 text-base font-semibold text-foreground/75">
+                {payload.process.length}
+              </p>
+            </div>
+            <div className="rounded-lg border border-border/40 bg-background px-3 py-2">
+              <p className="text-[11px] text-foreground/45">检索任务</p>
+              <p className="mt-0.5 text-base font-semibold text-foreground/75">
+                {searchTaskCount}
+              </p>
+            </div>
+            <div className="rounded-lg border border-border/40 bg-background px-3 py-2">
+              <p className="text-[11px] text-foreground/45">有效来源</p>
+              <p className="mt-0.5 text-base font-semibold text-foreground/75">
+                {payload.version === 1 ? "—" : sourceCount}
+              </p>
+            </div>
+          </div>
+
+          {payload.process.length > 0 && (
+            <section>
+              <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-foreground/55">
+                <ListChecks className="h-4 w-4" />
+                执行过程
+              </div>
+              <div className="ml-1 border-l border-border/60 pl-4">
+                {payload.process.map((step, index) => (
+                  <div
+                    key={`${step}-${index}`}
+                    className="relative pb-3 last:pb-0"
+                  >
+                    <span className="absolute -left-[19px] top-1.5 h-2 w-2 rounded-full border-2 border-background bg-emerald-500 ring-1 ring-border" />
+                    <p className="whitespace-pre-wrap text-xs leading-5 text-foreground/65">
+                      {step}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {payload.searches.length > 0 && (
+            <section>
+              <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-foreground/55">
+                <Search className="h-4 w-4" />
+                检索结果
+              </div>
+              <div className="flex flex-col gap-2">
+                {payload.searches.map((group, index) => (
+                  <details
+                    key={`${group.query}-${index}`}
+                    className="group rounded-lg border border-border/40 bg-background"
+                  >
+                    <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2.5">
+                      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-foreground/35 transition-transform group-open:rotate-90" />
+                      <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground/70">
+                        {group.query || `检索任务 ${index + 1}`}
+                      </span>
+                      <span className="shrink-0 text-[11px] text-foreground/40">
+                        {group.results.length} 条
+                      </span>
+                    </summary>
+                    <div className="flex flex-col gap-2 border-t border-border/30 px-3 py-3">
+                      {group.error && (
+                        <p className="text-xs text-rose-600">{group.error}</p>
+                      )}
+                      {group.results.map((result, resultIndex) => (
+                        <div
+                          key={`${result.url}-${resultIndex}`}
+                          className="rounded-md bg-muted/35 px-3 py-2"
+                        >
+                          <div className="flex items-start gap-2">
+                            <span className="mt-0.5 shrink-0 text-[11px] font-medium text-foreground/35">
+                              {resultIndex + 1}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              {result.url ? (
+                                <a
+                                  href={result.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-start gap-1 text-xs font-medium text-sky-700 hover:underline"
+                                >
+                                  <span>{result.title || result.url}</span>
+                                  <ExternalLink className="mt-0.5 h-3 w-3 shrink-0" />
+                                </a>
+                              ) : (
+                                <p className="text-xs font-medium text-foreground/70">
+                                  {result.title || "未命名结果"}
+                                </p>
+                              )}
+                              {result.source_label && (
+                                <span className="mt-1 inline-block rounded bg-background px-1.5 py-0.5 text-[10px] text-foreground/45">
+                                  {result.source_label}
+                                </span>
+                              )}
+                              {result.snippet && (
+                                <p className="mt-1.5 line-clamp-3 text-[11px] leading-5 text-foreground/55">
+                                  {result.snippet}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {payload.tools.length > 0 && (
+            <section>
+              <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-foreground/55">
+                <FileText className="h-4 w-4" />
+                工具结果
+              </div>
+              <div className="flex flex-col gap-2">
+                {payload.tools.map((tool, index) => (
+                  <details
+                    key={`${tool.tool}-${index}`}
+                    className="rounded-lg border border-border/40 bg-background"
+                  >
+                    <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-foreground/65">
+                      {tool.tool}
+                    </summary>
+                    <pre className="overflow-x-auto whitespace-pre-wrap border-t border-border/30 px-3 py-2 text-[11px] leading-5 text-foreground/55">
+                      {tool.summary}
+                    </pre>
+                  </details>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {imageFiles.length > 0 && (
+            <section>
+              <div className="mb-2 text-xs font-semibold text-foreground/55">
+                影像与附件
+              </div>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
+                {imageFiles.map((file) => (
+                  <a
+                    key={file}
+                    href={`/api/local-image?file=${encodeURIComponent(file)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative"
+                  >
+                    <img
+                      src={`/api/local-image?file=${encodeURIComponent(file)}`}
+                      alt={file}
+                      className="aspect-square w-full rounded-md object-cover transition-opacity group-hover:opacity-80"
+                    />
+                    <span className="absolute bottom-0 left-0 right-0 truncate rounded-b-md bg-black/55 px-1 py-0.5 text-center text-[10px] text-white">
+                      {file.match(/_(\d{4})\./)?.[1] ?? file}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
+
+          <section>
+            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-foreground/55">
+              <FileText className="h-4 w-4" />
+              研究结论
+            </div>
+            <div className="rounded-lg border border-border/40 bg-background px-4 py-3 text-foreground/70">
+              <MarkdownText>{payload.findings}</MarkdownText>
+            </div>
+          </section>
         </div>
       )}
     </div>
@@ -155,9 +381,8 @@ function Interrupt({
   hasNoAIOrToolMessages,
 }: InterruptProps) {
   const fallbackValue = Array.isArray(interrupt)
-    ? (interrupt as Record<string, any>[])
-    : (((interrupt as { value?: unknown } | undefined)?.value ??
-        interrupt) as Record<string, any>);
+    ? interrupt
+    : ((interrupt as { value?: unknown } | undefined)?.value ?? interrupt);
 
   return (
     <>

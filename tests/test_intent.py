@@ -12,8 +12,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from core.intent import (  # noqa: E402
     invalid_input_clarification,
+    is_explicit_analysis_request,
     is_obviously_invalid_input,
     latest_human_text,
+    normalize_router_type,
 )
 from core.state_reducers import FINDINGS_RESET, findings_reducer  # noqa: E402
 
@@ -36,7 +38,24 @@ def test_none_input_is_invalid():
     assert is_obviously_invalid_input(None)
 
 
-# ── 2. latest_human_text 消息兼容读取 ─────────────────────────────────────────
+# ── 2. 明确分析请求判定 ───────────────────────────────────────────────────────
+
+def test_explicit_analysis_request_with_absolute_year_range():
+    assert is_explicit_analysis_request("雄安2018-2024的城市发展变化")
+    assert is_explicit_analysis_request("分析雄安新区 2018 到 2024 年的变化")
+
+
+def test_explicit_analysis_request_with_relative_year_range():
+    assert is_explicit_analysis_request("北京最近5年发展情况")
+
+
+def test_explicit_analysis_request_requires_time_and_analysis_intent():
+    assert not is_explicit_analysis_request("帮我分析一下雄安新区")
+    assert not is_explicit_analysis_request("2018-2024 年发生了什么")
+    assert not is_explicit_analysis_request("你好")
+
+
+# ── 3. latest_human_text 消息兼容读取 ─────────────────────────────────────────
 
 def test_latest_human_text_human_message():
     from langchain_core.messages import AIMessage, HumanMessage
@@ -72,7 +91,7 @@ def test_latest_human_text_empty():
     assert latest_human_text(None) == ""
 
 
-# ── 3. invalid_input_clarification 针对性话术 ─────────────────────────────────
+# ── 4. invalid_input_clarification 针对性话术 ─────────────────────────────────
 
 def test_clarification_quotes_original():
     out = invalid_input_clarification("1")
@@ -85,7 +104,22 @@ def test_clarification_for_blank():
     assert "没有输入" in out
 
 
-# ── 4. findings_reducer：append 与 reset ───────────────────────────────────────
+# ── 5. 路由标签归一化 ─────────────────────────────────────────────────────────
+
+def test_normalize_router_type_accepts_action_and_legacy_analysis():
+    assert normalize_router_type("action") == "action"
+    assert normalize_router_type(" analysis ") == "action"
+    assert normalize_router_type("ACTION") == "action"
+
+
+def test_normalize_router_type_preserves_chat_and_rejects_unknown():
+    assert normalize_router_type("chat") == "chat"
+    assert normalize_router_type("clarify") == "clarify"
+    assert normalize_router_type("unexpected") == "clarify"
+    assert normalize_router_type(None) == "clarify"
+
+
+# ── 6. findings_reducer：append 与 reset ───────────────────────────────────────
 
 def test_findings_reducer_append():
     assert findings_reducer(["a"], ["b"]) == ["a", "b"]

@@ -26,7 +26,7 @@ import { ArrowRight } from "lucide-react";
 import { PasswordInput } from "@/components/ui/password-input";
 import { getApiKey } from "@/lib/api-key";
 import { useThreads } from "./Thread";
-import { resolveApiUrl } from "./client";
+import { createClient, resolveApiUrl } from "./client";
 import { toast } from "sonner";
 
 export type StateType = {
@@ -54,6 +54,11 @@ export type ResearchProgressItem = {
   stage: string;
   detail: string;
   round: number;
+  history: Array<{
+    stage: string;
+    detail: string;
+    round: number;
+  }>;
   /** 最后一次更新时间（用于排序/清理）。 */
   ts: number;
 };
@@ -154,6 +159,20 @@ const StreamSession = ({
             delete next[ev.task_id];
             return next;
           }
+          const previous = prev[ev.task_id];
+          const previousHistory = previous?.history ?? [];
+          const lastEvent = previousHistory.at(-1);
+          const history =
+            lastEvent?.stage === ev.stage && lastEvent.detail === ev.detail
+              ? previousHistory
+              : [
+                  ...previousHistory,
+                  {
+                    stage: ev.stage,
+                    detail: ev.detail,
+                    round: ev.round,
+                  },
+                ];
           return {
             ...prev,
             [ev.task_id]: {
@@ -162,6 +181,7 @@ const StreamSession = ({
               stage: ev.stage,
               detail: ev.detail,
               round: ev.round,
+              history,
               ts: Date.now(),
             },
           };
@@ -195,8 +215,16 @@ const StreamSession = ({
     });
   }, [apiKey, apiUrl, authScheme]);
 
+  // useStream exposes enumerable getters that subscribe to stream modes when
+  // read. Spreading streamValue would read every getter, including
+  // toolProgress, and incorrectly add the unsupported "tools" mode.
+  const contextValue = Object.assign(
+    Object.create(streamValue) as ReturnType<typeof useTypedStream>,
+    { researchProgress },
+  );
+
   return (
-    <StreamContext.Provider value={{ ...streamValue, researchProgress }}>
+    <StreamContext.Provider value={contextValue}>
       {children}
     </StreamContext.Provider>
   );
@@ -226,7 +254,7 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
   const [authScheme, setAuthScheme] = useQueryState("authScheme", {
     defaultValue: envAuthScheme || "",
   });
-  const [threadId] = useQueryState("threadId");
+  const [threadId, setThreadId] = useQueryState("threadId");
 
   // sessionKey decides when StreamSession remounts. Remounting on explicit
   // navigation (switching threads / new chat) clears stale state, but we must
@@ -234,8 +262,10 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
   // would wipe the in-progress message and blank the page.
   const [sessionKey, setSessionKey] = useState(threadId ?? "new");
   const streamCreatedRef = useRef(false);
+  const skipThreadValidationRef = useRef(false);
   const handleThreadCreated = useCallback(() => {
     streamCreatedRef.current = true;
+    skipThreadValidationRef.current = true;
   }, []);
   useEffect(() => {
     if (streamCreatedRef.current) {
@@ -266,6 +296,68 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
   const finalApiUrl = resolveApiUrl(apiUrl || envApiUrl || "");
   const finalAssistantId = assistantId || envAssistantId;
   const finalAuthScheme = authScheme || envAuthScheme || "";
+  const [threadValidation, setThreadValidation] = useState<
+    "checking" | "ready"
+  >(threadId ? "checking" : "ready");
+
+  useEffect(() => {
+    if (!threadId || !finalApiUrl) {
+      setThreadValidation("ready");
+      return;
+    }
+    if (skipThreadValidationRef.current) {
+      skipThreadValidationRef.current = false;
+      setThreadValidation("ready");
+      return;
+    }
+
+    const controller = new AbortController();
+    setThreadValidation("checking");
+    const client = createClient(
+      finalApiUrl,
+      apiKey || undefined,
+      finalAuthScheme || undefined,
+    );
+
+    client.threads
+      .getState(threadId, undefined, { signal: controller.signal })
+      .then(() => setThreadValidation("ready"))
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+        const message =
+          error instanceof Error ? error.message : String(error ?? "");
+        const isMissingThread =
+          message.includes("HTTP 404") ||
+          message.includes("Thread with ID") ||
+          message.toLowerCase().includes("not found");
+
+        if (isMissingThread) {
+          setThreadId(null);
+          setThreadValidation("ready");
+          toast.info("原对话已失效，已为你切换到新对话");
+          return;
+        }
+
+        // 非 404 错误交给 StreamSession 的连接错误处理。
+        setThreadValidation("ready");
+      });
+
+    return () => controller.abort();
+  }, [
+    apiKey,
+    finalApiUrl,
+    finalAuthScheme,
+    setThreadId,
+    threadId,
+  ]);
+
+  if (threadValidation === "checking") {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+        正在加载对话…
+      </div>
+    );
+  }
 
   // Show the form if we: don't have an API URL, or don't have an assistant ID
   if (!finalApiUrl || !finalAssistantId) {

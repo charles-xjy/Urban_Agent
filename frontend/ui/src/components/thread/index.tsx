@@ -20,6 +20,8 @@ import { TooltipIconButton } from "./tooltip-icon-button";
 import {
   ArrowDown,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   Circle,
   LoaderCircle,
   PanelRightOpen,
@@ -88,7 +90,9 @@ function ResearchProgressList({
 }: {
   progress: Record<string, ResearchProgressItem>;
 }) {
-  const items = Object.values(progress);
+  const items = Object.values(progress).sort((a, b) =>
+    a.task_id.localeCompare(b.task_id, undefined, { numeric: true }),
+  );
   if (items.length === 0) return null;
   return (
     <div className="rounded-xl border border-border/50 bg-muted/20 px-4 py-3 text-sm">
@@ -97,14 +101,65 @@ function ResearchProgressList({
       </p>
       <div className="flex flex-col gap-1.5">
         {items.map((item) => (
-          <div key={item.task_id} className="flex items-center gap-2">
-            <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-amber-500" />
-            <span className="flex-1 truncate text-foreground/80">
-              {item.topic} — {item.detail}
-            </span>
-          </div>
+          <ActiveAgentCard key={item.task_id} item={item} />
         ))}
       </div>
+    </div>
+  );
+}
+
+function ActiveAgentCard({ item }: { item: ResearchProgressItem }) {
+  const [open, setOpen] = useState(false);
+  const agentNumber = Number(item.task_id.match(/\d+/)?.[0] ?? 0);
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-border/40 bg-background/70">
+      <button
+        type="button"
+        aria-expanded={open}
+        className="flex w-full items-center gap-2 px-3 py-2 text-left"
+        onClick={() => setOpen((value) => !value)}
+      >
+        {open ? (
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-foreground/40" />
+        ) : (
+          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-foreground/40" />
+        )}
+        <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-amber-500" />
+        <span className="min-w-0 flex-1 truncate font-medium text-foreground/75">
+          Agent {agentNumber || "—"} · {item.topic}
+        </span>
+        <span className="shrink-0 text-xs text-amber-600">运行中</span>
+      </button>
+
+      {open && (
+        <div className="border-t border-border/30 px-3 py-2">
+          <div className="flex flex-col gap-2">
+            {(item.history ?? [
+              {
+                stage: item.stage,
+                detail: item.detail,
+                round: item.round,
+              },
+            ]).map((event, index, history) => {
+              const isLatest = index === history.length - 1;
+              return (
+                <div
+                  key={`${event.round}-${event.stage}-${index}`}
+                  className="flex items-start gap-2 text-xs text-foreground/65"
+                >
+                  {isLatest ? (
+                    <LoaderCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 animate-spin text-amber-500" />
+                  ) : (
+                    <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-500" />
+                  )}
+                  <span className="whitespace-pre-wrap">{event.detail}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -198,9 +253,21 @@ export function Thread() {
   const findings = (stream.values as Record<string, unknown>)
     ?.findings as string[] | undefined;
 
-  const messages = stream.messages.filter(
-    (m) => !m.id?.startsWith(DO_NOT_RENDER_ID_PREFIX),
-  );
+  const messages = stream.messages.filter((message, index) => {
+    if (message.id?.startsWith(DO_NOT_RENDER_ID_PREFIX)) return false;
+    if ((message as Record<string, unknown>).name === "internal") return true;
+
+    // 子图消息只属于对应 Agent 的折叠详情，不进入主对话消息流。
+    const streamMetadata = stream.getMessagesMetadata(message, index)
+      ?.streamMetadata;
+    const checkpointNamespace =
+      streamMetadata?.langgraph_checkpoint_ns ??
+      streamMetadata?.checkpoint_ns;
+    return !(
+      typeof checkpointNamespace === "string" &&
+      checkpointNamespace.length > 0
+    );
+  });
 
   const lastError = useRef<string | undefined>(undefined);
 
@@ -259,6 +326,33 @@ export function Thread() {
 
     const context =
       Object.keys(artifactContext).length > 0 ? artifactContext : undefined;
+
+    if (stream.interrupt) {
+      if (!input.trim()) {
+        toast.error("调整研究计划时请输入文字说明");
+        return;
+      }
+
+      stream.submit(
+        {},
+        {
+          command: {
+            resume: input.trim(),
+          },
+          streamMode: ["values"],
+          streamSubgraphs: true,
+          streamResumable: true,
+          optimisticValues: (prev) => ({
+            ...prev,
+            messages: [...(prev.messages ?? []), newHumanMessage],
+          }),
+        },
+      );
+
+      setInput("");
+      setContentBlocks([]);
+      return;
+    }
 
     stream.submit(
       { messages: [...toolMessages, newHumanMessage], context },
@@ -455,7 +549,7 @@ export function Thread() {
                             handleRegenerate={handleRegenerate}
                           />
                         )}
-                        {isLastHuman && !!plan?.length && (
+                        {isLastHuman && !!plan?.length && !stream.interrupt && (
                           <TaskPlanView plan={plan} findings={findings ?? []} />
                         )}
                       </Fragment>
@@ -475,7 +569,10 @@ export function Thread() {
                   <ResearchProgressList
                     progress={stream.researchProgress ?? {}}
                   />
-                  {isLoading && <AssistantMessageLoading />}
+                  {isLoading &&
+                    Object.keys(stream.researchProgress ?? {}).length === 0 && (
+                      <AssistantMessageLoading />
+                    )}
                 </>
               }
               footer={

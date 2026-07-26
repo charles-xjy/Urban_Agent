@@ -243,15 +243,20 @@ const defaultComponents: any = {
   },
 };
 
+type SourceDisplayEntry = {
+  number: string;
+  title: string;
+  url: string;
+};
+
 /**
- * 来源区段展示兜底：模型偶尔会把整个来源列表压成一个段落。
- * 这里在渲染前统一整理，既能修复新回复，也能改善 SQLite 中已保存的历史消息。
- *
- * 仅做排版改善，**不修改任何编号**——编号语义由后端「最终报告合并节点」决定，
- * 前端重新编号会与正文 [n] 引用再次不一致（见 REPORT_SOURCE_NUMBERING.md）。
- * 实现对齐 xiongan_frontend 的 normalizeSourceList。
+ * 把来源区段从 Markdown 正文中拆出，交给专用行组件渲染。
+ * 这样不会生成 ul/ol 的 marker，序号、标题和链接也能保持在同一行。
  */
-function normalizeSourceList(markdown: string): string {
+function splitSourceList(markdown: string): {
+  report: string;
+  sources: SourceDisplayEntry[];
+} {
   const sourceHeading =
     /(^|\n)[ \t]*(?:#{1,6}[ \t]+)?来源[ \t]*(?:\n|(?=(?:[-*][ \t]*)?\[\d+\]))/gm;
   let lastMatch: RegExpExecArray | null = null;
@@ -261,28 +266,43 @@ function normalizeSourceList(markdown: string): string {
     lastMatch = match;
   }
 
-  if (!lastMatch) return markdown;
+  if (!lastMatch) return { report: markdown, sources: [] };
 
   const headingStart = lastMatch.index + (lastMatch[1] ? 1 : 0);
   const sourceStart = lastMatch.index + lastMatch[0].length;
   const report = markdown.slice(0, headingStart).trimEnd();
   const sourceText = markdown.slice(sourceStart).trim();
-  if (!sourceText) return markdown;
+  if (!sourceText) return { report: markdown, sources: [] };
 
   const entries = sourceText
-    .replace(/\s+(?=(?:[-*][ \t]*)?\[\d+\][ \t]+)/g, "\n")
-    .split(/\n+/)
-    .map((entry) => entry.trim().replace(/^[-*][ \t]+/, ""))
-    .filter(Boolean);
+    .split(/(?=\[\d+\][ \t]+)/)
+    .map((entry) =>
+      entry
+        .trim()
+        .replace(/^[-*][ \t]*/, "")
+        .replace(/\s*[-*]\s*$/, ""),
+    )
+    .filter((entry) => /^\[\d+\]/.test(entry));
 
-  if (!entries.length) return markdown;
+  const sources = entries.map((entry, index) => {
+    const numbered = entry.match(/^\[(\d+)\]\s*(.*)$/);
+    const number = numbered?.[1] ?? String(index + 1);
+    const body = (numbered?.[2] ?? entry).trim();
+    const urlMatch = body.match(/https?:\/\/\S+/);
+    const url = urlMatch?.[0].replace(/[.,;，。；)\]]+$/, "") ?? "";
+    const title = (url ? body.replace(urlMatch?.[0] ?? "", "") : body)
+      .replace(/\s*[-–—·]\s*$/, "")
+      .trim();
 
-  return `${report}\n\n## 来源\n\n${entries
-    .map((entry) => `- ${entry}`)
-    .join("\n\n")}`;
+    return { number, title, url };
+  });
+
+  return { report, sources };
 }
 
 const MarkdownTextImpl: FC<{ children: string }> = ({ children }) => {
+  const { report, sources } = splitSourceList(children);
+
   return (
     <div className="markdown-content">
       <ReactMarkdown
@@ -290,8 +310,43 @@ const MarkdownTextImpl: FC<{ children: string }> = ({ children }) => {
         rehypePlugins={[rehypeKatex]}
         components={defaultComponents}
       >
-        {normalizeSourceList(children)}
+        {report}
       </ReactMarkdown>
+      {sources.length > 0 && (
+        <section className="mt-8">
+          <h2 className="mb-4 scroll-m-20 text-3xl font-semibold tracking-tight">
+            来源
+          </h2>
+          <div className="divide-y divide-border/50 rounded-lg border border-border/50 bg-muted/10 px-4">
+            {sources.map((source, index) => (
+              <div
+                key={`${source.number}-${source.url}-${index}`}
+                className="flex items-start gap-2 py-3 text-sm leading-6"
+              >
+                <span className="shrink-0 font-medium text-foreground/50">
+                  [{source.number}]
+                </span>
+                <p className="min-w-0 flex-1 text-foreground/70">
+                  {source.title && <span>{source.title}</span>}
+                  {source.title && source.url && (
+                    <span className="text-foreground/30"> — </span>
+                  )}
+                  {source.url && (
+                    <a
+                      href={source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="break-all font-medium text-primary underline underline-offset-4"
+                    >
+                      {source.url}
+                    </a>
+                  )}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };

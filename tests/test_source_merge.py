@@ -15,6 +15,7 @@ from core.source_merge import (  # noqa: E402
     _renumber_search_report,
     has_source_section,
     merge_findings_with_sources,
+    replace_report_sources,
 )
 
 
@@ -182,6 +183,30 @@ def test_url_normalization_dedup():
     renumbered, n = _renumber_search_report(f, offset=0)
     assert n == 1, f"归一化后应为同一来源，实际 {n}"
     assert "结论[1][1]" in renumbered, renumbered
+
+
+# ── 9. 最终报告来源强制使用统一列表，且只保留正文引用项 ─────────────────────
+
+def test_replace_report_sources_uses_only_cited_canonical_sources():
+    report = (
+        "建设变化结论[1]，人口变化结论[3]。\n\n"
+        "## 来源\n\n"
+        "- [1] 模型自行生成的错误来源 - https://wrong.example.com"
+    )
+    canonical = [
+        (1, "建设官方来源", "https://example.com/a"),
+        (2, "未引用来源", "https://example.com/b"),
+        (3, "人口官方来源", "https://example.com/c"),
+    ]
+
+    finalized = replace_report_sources(report, canonical)
+    sources = _sources_as_dict(finalized)
+
+    assert sorted(sources) == [1, 3]
+    assert sources[1][1] == "https://example.com/a"
+    assert sources[3][1] == "https://example.com/c"
+    assert "wrong.example.com" not in finalized
+    assert "未引用来源" not in finalized
 
 
 def _run_all():

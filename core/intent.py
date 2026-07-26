@@ -16,6 +16,11 @@ from typing import Any
 
 # 空 / 纯数字 / 无文字乱码 视为明显无效
 _INVALID_RE = re.compile(r"[一-鿿A-Za-z]")
+_YEAR_RANGE_RE = re.compile(
+    r"(?:19|20)\d{2}\s*年?\s*(?:[-—–~～至到])\s*(?:19|20)\d{2}\s*年?"
+)
+_RELATIVE_YEARS_RE = re.compile(r"(?:最近|近|过去)\s*[一二三四五六七八九十\d]+\s*年")
+_ANALYSIS_WORD_RE = re.compile(r"分析|变化|发展|演变|建设|增长|对比|比较|变迁")
 
 
 def _message_text(message: Any) -> str:
@@ -84,6 +89,22 @@ def is_obviously_invalid_input(text: str) -> bool:
     return _INVALID_RE.search(compact) is None
 
 
+def is_explicit_analysis_request(text: str) -> bool:
+    """
+    识别无需 LLM 猜测的明确城市分析请求。
+
+    仅在同时包含分析意图和明确时间范围时命中，避免把普通聊天或缺少
+    关键时间信息的请求误送入分析流程。
+    """
+    if not text:
+        return False
+    compact = re.sub(r"\s+", "", text)
+    has_time_range = bool(
+        _YEAR_RANGE_RE.search(compact) or _RELATIVE_YEARS_RE.search(compact)
+    )
+    return has_time_range and _ANALYSIS_WORD_RE.search(compact) is not None
+
+
 def invalid_input_clarification(text: str) -> str:
     """
     为明显无效输入生成针对性确认话术（引用原话），避免固定模板的死板回复。
@@ -94,3 +115,18 @@ def invalid_input_clarification(text: str) -> str:
             "你可以直接告诉我想聊什么，或者说明需要分析的地区和问题。"
         )
     return "你好像还没有输入具体内容。你可以直接告诉我想聊什么，或者说明需要分析的地区和问题。"
+
+
+def normalize_router_type(value: Any) -> str:
+    """
+    将模型返回的路由标签归一化为 action / chat / clarify。
+
+    提示词使用 action，内部历史代码曾使用 analysis；两者都表示进入分析流程。
+    未知值必须保守地回退为 clarify。
+    """
+    normalized = str(value or "").strip().lower()
+    if normalized in {"action", "analysis"}:
+        return "action"
+    if normalized == "chat":
+        return "chat"
+    return "clarify"

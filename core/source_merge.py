@@ -190,3 +190,33 @@ def merge_findings_with_sources(findings: list[str]) -> MergedReport:
 def has_source_section(text: str) -> bool:
     """报告是否已包含 ## 来源 区段。"""
     return bool(_SOURCE_HEADING_RE.search(text or ""))
+
+
+def replace_report_sources(
+    report: str,
+    sources: list[tuple[int, str, str]],
+) -> str:
+    """
+    用统一来源替换模型自行生成的来源区段，并只保留正文实际引用的编号。
+
+    这能避免模型遗漏、重排或混用不同 researcher 的来源，同时减少最终列表
+    中正文从未引用的条目。
+    """
+    body, _ = _split_source_section(report or "")
+    cited = {int(num) for num in _NUM_TAG_RE.findall(body)}
+    selected = [
+        (num, title, url)
+        for num, title, url in sources
+        if num in cited
+    ]
+
+    if not selected:
+        return body.strip()
+
+    lines = ["## 来源", ""]
+    lines.extend(
+        _format_source(num, title, url)
+        for num, title, url in selected
+    )
+    sources_md = "\n".join(lines)
+    return f"{body.rstrip()}\n\n{sources_md}"
