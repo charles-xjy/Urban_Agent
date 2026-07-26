@@ -29,6 +29,7 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command, interrupt
 
 import config.settings as settings
+from core.source_merge import has_source_section, merge_findings_with_sources
 from graph.researcher_graph import researcher_node
 from graph.state import AgentState, ResearchTask, ResearcherState
 
@@ -480,12 +481,17 @@ _REPORTER_SYSTEM = """\
 只能基于提供的研究笔记撰写报告，禁止添加未经证实的内容。
 对于笔记中未涉及的方面，明确说明"现有证据不足，本报告不作评价"。
 报告结构清晰，语言专业简洁，不使用"可能""推测"等模糊表达。
+
+引用规则（务必遵守）：
+- 正文引用证据时使用方括号编号 [n]，编号必须对应随附的统一来源列表，不得自创新编号；
+- 报告结尾输出一个 `## 来源` 区段，按编号列出所有引用过的来源；
+- 若某条来源未在正文中引用，可省略；不要重新编号已存在的来源。
 """
 
 
 async def reporter_node(state: AgentState) -> AgentState:
-    findings_text = "\n\n---\n\n".join(state.get("findings") or [])
-    if not findings_text:
+    findings = state.get("findings") or []
+    if not findings:
         return {
             "report": (
                 f"对于{state['location']} {state['start_year']}-{state['end_year']}年的变化，"
@@ -493,16 +499,26 @@ async def reporter_node(state: AgentState) -> AgentState:
             )
         }
 
+    # 合并多份研究笔记：按 URL 去重 + 跨 finding 连续编号 + 同步替换正文 [n]
+    merged = merge_findings_with_sources(findings)
+
     resp = await _llm(max_tokens=8192).ainvoke([
         SystemMessage(content=_REPORTER_SYSTEM),
         HumanMessage(content=(
             f"分析对象：{state['location']}\n"
             f"时间范围：{state['start_year']} 至 {state['end_year']}\n\n"
-            f"研究笔记：\n{findings_text}\n\n"
-            "请撰写城市变化分析报告。"
+            f"研究笔记（正文 [n] 已统一编号）：\n{merged.body}\n\n"
+            f"统一来源列表（正文 [n] 必须对应这里的编号）：\n{merged.sources_md}\n\n"
+            "请撰写城市变化分析报告，正文用 [n] 引用来源，报告结尾输出 ## 来源 区段。"
         )),
     ])
-    return {"report": resp.content}
+    report = resp.content
+
+    # LLM 漏掉来源列表 -> 追加统一列表（不重新编号）
+    if merged.sources and not has_source_section(report):
+        report = f"{report.rstrip()}\n\n{merged.sources_md}"
+
+    return {"report": report}
 
 
 # ── 构建图 ────────────────────────────────────────────────────────────────────

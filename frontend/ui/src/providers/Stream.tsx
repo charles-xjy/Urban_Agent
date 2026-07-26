@@ -37,6 +37,27 @@ export type StateType = {
   report?: string;
 };
 
+/** Researcher 执行中的实时进度事件（后端 get_stream_writer 发出）。 */
+export type ResearchProgressEvent = {
+  type: "research_progress";
+  task_id: string;
+  topic: string;
+  stage: string;
+  detail: string;
+  round: number;
+};
+
+/** 单个 task 的进度条目。 */
+export type ResearchProgressItem = {
+  task_id: string;
+  topic: string;
+  stage: string;
+  detail: string;
+  round: number;
+  /** 最后一次更新时间（用于排序/清理）。 */
+  ts: number;
+};
+
 const useTypedStream = useStream<
   StateType,
   {
@@ -45,11 +66,13 @@ const useTypedStream = useStream<
       ui?: (UIMessage | RemoveUIMessage)[] | UIMessage | RemoveUIMessage;
       context?: Record<string, unknown>;
     };
-    CustomEventType: UIMessage | RemoveUIMessage;
+    CustomEventType: UIMessage | RemoveUIMessage | ResearchProgressEvent;
   }
 >;
 
-type StreamContextType = ReturnType<typeof useTypedStream>;
+type StreamContextType = ReturnType<typeof useTypedStream> & {
+  researchProgress: Record<string, ResearchProgressItem>;
+};
 const StreamContext = createContext<StreamContextType | undefined>(undefined);
 
 async function sleep(ms = 4000) {
@@ -94,6 +117,10 @@ const StreamSession = ({
 }) => {
   const [threadId, setThreadId] = useQueryState("threadId");
   const { getThreads, setThreads } = useThreads();
+  // researcher 实时进度：task_id -> 最新进度条目。不进 graph state / checkpoint。
+  const [researchProgress, setResearchProgress] = useState<
+    Record<string, ResearchProgressItem>
+  >({});
   const streamValue = useTypedStream({
     apiUrl,
     apiKey: apiKey ?? undefined,
@@ -110,6 +137,34 @@ const StreamSession = ({
         options.mutate((prev) => {
           const ui = uiMessageReducer(prev.ui ?? [], event);
           return { ...prev, ui };
+        });
+        return;
+      }
+      // researcher 实时进度事件：按 task_id 聚合到本地 state。
+      if (
+        event &&
+        typeof event === "object" &&
+        (event as ResearchProgressEvent).type === "research_progress"
+      ) {
+        const ev = event as ResearchProgressEvent;
+        setResearchProgress((prev) => {
+          // stage === "complete" 表示该 task 已结束，清掉进度（卡片接管展示）。
+          if (ev.stage === "complete") {
+            const next = { ...prev };
+            delete next[ev.task_id];
+            return next;
+          }
+          return {
+            ...prev,
+            [ev.task_id]: {
+              task_id: ev.task_id,
+              topic: ev.topic,
+              stage: ev.stage,
+              detail: ev.detail,
+              round: ev.round,
+              ts: Date.now(),
+            },
+          };
         });
       }
     },
@@ -141,7 +196,7 @@ const StreamSession = ({
   }, [apiKey, apiUrl, authScheme]);
 
   return (
-    <StreamContext.Provider value={streamValue}>
+    <StreamContext.Provider value={{ ...streamValue, researchProgress }}>
       {children}
     </StreamContext.Provider>
   );

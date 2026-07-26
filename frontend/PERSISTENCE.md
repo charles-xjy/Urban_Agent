@@ -112,7 +112,19 @@ checkpointer = AsyncSqliteSaver.from_conn_string(DB_PATH)
 
 LangGraph 启动时会读取 `checkpointer.path`，加载自定义 checkpointer 替换默认 in-memory 实现。
 
-### 4. 配套清理
+### 4. 依赖与运行时文件
+
+将 `langgraph-checkpoint-sqlite` 声明在 `frontend/pyproject.toml` 中，避免换环境或重新安装项目时遗漏 SQLite checkpointer。
+
+SQLite 运行时会在 `frontend/` 下生成以下文件：
+
+- `checkpoints.db`
+- `checkpoints.db-wal`
+- `checkpoints.db-shm`
+
+这些文件属于运行时数据，不应提交到 Git；项目根目录的 `.gitignore` 已统一忽略它们。
+
+### 5. 配套清理
 
 - `.gitignore` 增加 `frontend/checkpoints.db`（运行时数据，不入库）。
 

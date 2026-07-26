@@ -25,6 +25,7 @@ from langchain_openai import ChatOpenAI
 from langgraph.types import Command
 
 import config.settings as settings
+from core.intent import invalid_input_clarification, is_obviously_invalid_input
 from graph.main_graph import main_graph
 
 
@@ -168,6 +169,11 @@ async def main():
 
         if not query or query.lower() in ("q", "quit", "exit", "退出"):
             break
+
+        # 规则前置：空 / 纯数字 / 乱码不进入地点解析，避免模型复读或误判
+        if is_obviously_invalid_input(query):
+            print(invalid_input_clarification(query))
+            continue
 
         parsed = await _parse_query(query)
         if not parsed:

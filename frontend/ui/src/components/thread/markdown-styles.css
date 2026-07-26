@@ -1,4 +1,11 @@
 /* Base markdown styles */
+.markdown-content {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
 .markdown-content code:not(pre code) {
   background-color: rgba(0, 0, 0, 0.05);
   padding: 0.2em 0.4em;
@@ -9,6 +16,9 @@
 .markdown-content a {
   color: #0070f3;
   text-decoration: none;
+  /* 长 URL 不要撑破消息气泡 */
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .markdown-content a:hover {
@@ -22,12 +32,24 @@
 }
 
 .markdown-content pre {
+  max-width: 100%;
   overflow-x: auto;
 }
 
 .markdown-content table {
   border-collapse: collapse;
+  max-width: 100%;
   width: 100%;
+}
+
+.markdown-content li {
+  /* 来源列表等长内容兜底换行 */
+  padding-left: 0.2rem;
+  overflow-wrap: anywhere;
+}
+
+.markdown-content li > a {
+  display: inline;
 }
 
 .markdown-content th,

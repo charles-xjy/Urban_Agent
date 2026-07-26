@@ -243,6 +243,45 @@ const defaultComponents: any = {
   },
 };
 
+/**
+ * 来源区段展示兜底：模型偶尔会把整个来源列表压成一个段落。
+ * 这里在渲染前统一整理，既能修复新回复，也能改善 SQLite 中已保存的历史消息。
+ *
+ * 仅做排版改善，**不修改任何编号**——编号语义由后端「最终报告合并节点」决定，
+ * 前端重新编号会与正文 [n] 引用再次不一致（见 REPORT_SOURCE_NUMBERING.md）。
+ * 实现对齐 xiongan_frontend 的 normalizeSourceList。
+ */
+function normalizeSourceList(markdown: string): string {
+  const sourceHeading =
+    /(^|\n)[ \t]*(?:#{1,6}[ \t]+)?来源[ \t]*(?:\n|(?=(?:[-*][ \t]*)?\[\d+\]))/gm;
+  let lastMatch: RegExpExecArray | null = null;
+  let match: RegExpExecArray | null;
+
+  while ((match = sourceHeading.exec(markdown)) !== null) {
+    lastMatch = match;
+  }
+
+  if (!lastMatch) return markdown;
+
+  const headingStart = lastMatch.index + (lastMatch[1] ? 1 : 0);
+  const sourceStart = lastMatch.index + lastMatch[0].length;
+  const report = markdown.slice(0, headingStart).trimEnd();
+  const sourceText = markdown.slice(sourceStart).trim();
+  if (!sourceText) return markdown;
+
+  const entries = sourceText
+    .replace(/\s+(?=(?:[-*][ \t]*)?\[\d+\][ \t]+)/g, "\n")
+    .split(/\n+/)
+    .map((entry) => entry.trim().replace(/^[-*][ \t]+/, ""))
+    .filter(Boolean);
+
+  if (!entries.length) return markdown;
+
+  return `${report}\n\n## 来源\n\n${entries
+    .map((entry) => `- ${entry}`)
+    .join("\n\n")}`;
+}
+
 const MarkdownTextImpl: FC<{ children: string }> = ({ children }) => {
   return (
     <div className="markdown-content">
@@ -251,7 +290,7 @@ const MarkdownTextImpl: FC<{ children: string }> = ({ children }) => {
         rehypePlugins={[rehypeKatex]}
         components={defaultComponents}
       >
-        {children}
+        {normalizeSourceList(children)}
       </ReactMarkdown>
     </div>
   );

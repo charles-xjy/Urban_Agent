@@ -2,7 +2,10 @@ import { v4 as uuidv4 } from "uuid";
 import { Fragment, ReactNode, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useStreamContext } from "@/providers/Stream";
+import {
+  useStreamContext,
+  type ResearchProgressItem,
+} from "@/providers/Stream";
 import { useState, FormEvent } from "react";
 import { Button } from "../ui/button";
 import { Checkpoint, Message } from "@langchain/langgraph-sdk";
@@ -75,6 +78,32 @@ function TaskPlanView({ plan, findings }: { plan: ResearchTask[]; findings: stri
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function ResearchProgressList({
+  progress,
+}: {
+  progress: Record<string, ResearchProgressItem>;
+}) {
+  const items = Object.values(progress);
+  if (items.length === 0) return null;
+  return (
+    <div className="rounded-xl border border-border/50 bg-muted/20 px-4 py-3 text-sm">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground/50">
+        正在研究…
+      </p>
+      <div className="flex flex-col gap-1.5">
+        {items.map((item) => (
+          <div key={item.task_id} className="flex items-center gap-2">
+            <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-amber-500" />
+            <span className="flex-1 truncate text-foreground/80">
+              {item.topic} — {item.detail}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -442,6 +471,10 @@ export function Thread() {
                       handleRegenerate={handleRegenerate}
                     />
                   )}
+                  {/* Researcher 执行中的实时进度块（卡片到达后自动消失） */}
+                  <ResearchProgressList
+                    progress={stream.researchProgress ?? {}}
+                  />
                   {isLoading && <AssistantMessageLoading />}
                 </>
               }

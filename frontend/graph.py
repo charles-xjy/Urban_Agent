@@ -16,7 +16,6 @@ Urban_Agent LangGraph 服务端入口
 import asyncio
 import json
 import logging
-import operator
 import os
 import re
 import sys
@@ -27,6 +26,7 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, System
 from langchain_openai import ChatOpenAI
 from langgraph.constants import Send
 from langgraph.graph import END, START, StateGraph
+from langgraph.config import get_stream_writer
 from langgraph.graph.message import add_messages
 from langgraph.types import interrupt
 from typing_extensions import TypedDict
@@ -40,6 +40,16 @@ if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
 
 import config.settings as settings  # noqa: E402
+from core.intent import (  # noqa: E402
+    invalid_input_clarification,
+    is_obviously_invalid_input,
+    latest_human_text,
+)
+from core.source_merge import (  # noqa: E402
+    has_source_section,
+    merge_findings_with_sources,
+)
+from core.state_reducers import FINDINGS_RESET, findings_reducer  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -90,8 +100,9 @@ class WebState(TypedDict):
     start_year: int
     end_year: int
     route: str  # "analysis" | "chat" | "clarify"
+    intent_route: str  # 对齐参考：action | chat | clarify，便于路由与调试
     plan: list[dict]
-    findings: Annotated[list[str], operator.add]
+    findings: Annotated[list[str], findings_reducer]  # 支持跨轮 reset，见 core/state_reducers.py
     report: str
 
 
@@ -110,59 +121,104 @@ def _llm(temperature: float = 0, max_tokens: int = 512) -> ChatOpenAI:
 # ── 4. Router 节点 ────────────────────────────────────────────────────────────
 
 _ROUTER_SYSTEM = f"""\
-你是城市变化研究智能体的路由助手。当前年份：{datetime.now().year}。
+你是城市治理智能体的意图路由器。当前年份：{datetime.now().year}。
 
-判断用户最新消息的意图：
-1. 如果包含城市/地区名称 + 分析/变化/发展等意图 → type: "analysis"
-2. 如果是问候、闲聊、询问功能 → type: "chat"，给出友好回复
-3. 如果意图不明或信息不足 → type: "clarify"，追问具体需求
+判断用户最新一条消息属于哪一类：
+- action：明确的城市/地区分析任务（含地点 + 分析/变化/发展等意图）
+- chat：问候、闲聊、询问你是谁/能做什么，或无需调用工具的普通问题
+- clarify：输入无意义，或看起来想执行任务但关键信息（如地点、时间）不足
 
-输出严格 JSON：
-- {{"type": "analysis"}}
-- {{"type": "chat", "reply": "你的回复内容"}}
-- {{"type": "clarify", "question": "你的追问"}}
+只输出严格 JSON：
+{{"type":"action"}}
+{{"type":"chat","reply":"自然、友好的中文回复"}}
+{{"type":"clarify","question":"结合用户原话提出简短确认问题"}}
 
 注意：
-- "你好"、"在吗"、"你能做什么" → chat
-- "asdf"、"1"、无意义输入 → clarify，引导用户输入有效的城市分析请求
-- "分析雄安新区变化"、"北京最近5年发展" → analysis
+- 不要复读用户原文
+- 1、纯数字、乱码等输入必须输出 clarify
+- 分析雄安新区变化、北京最近5年发展 -> action
+- 你好、在吗、你能做什么 -> chat
 """
 
 
 async def router_node(state: WebState) -> dict:
-    messages = state["messages"]
-    last_human = ""
-    for msg in reversed(messages):
-        if isinstance(msg, HumanMessage):
-            last_human = msg.content if isinstance(msg.content, str) else str(msg.content)
-            break
+    """
+    入口意图路由（规则 + 模型两层）：
+    1. 确定性规则拦截空 / 纯数字 / 乱码 -> 直接 clarify，不调模型
+    2. 其余输入取最近 8 条上下文交模型分类 action/chat/clarify
+    3. 复读、空回复、JSON 解析失败 -> 兜底
+    4. action 时重置上一轮任务状态（findings/plan/report），避免同线程跨轮继承
+    """
+    messages = state.get("messages", [])
+    last_human = latest_human_text(messages)
 
+    # 1. 规则前置：明显无效输入不交给模型
+    if is_obviously_invalid_input(last_human):
+        return {
+            "messages": [AIMessage(content=invalid_input_clarification(last_human))],
+            "route": "clarify",
+            "intent_route": "clarify",
+        }
+
+    # 2. 模型分类：传最近 8 条，使连续确认能结合上一轮追问理解
+    recent = messages[-8:]
     resp = await _llm(max_tokens=256).ainvoke([
         SystemMessage(content=_ROUTER_SYSTEM),
-        HumanMessage(content=last_human),
+        HumanMessage(content=_format_recent(recent)),
     ])
     raw = re.sub(r"```(?:json)?\s*|\s*```", "", resp.content).strip()
     try:
         result = json.loads(raw)
     except Exception:
-        result = {"type": "clarify", "question": "请输入您想分析的城市和时间范围，例如：雄安新区 2018 到 2024 年的城市变化"}
+        result = {}
 
     route_type = result.get("type", "clarify")
 
     if route_type == "chat":
-        reply = result.get("reply", "你好！我是城市变化研究智能体，可以帮你分析任意城市在指定时间段内的变化。请输入分析请求，例如：雄安新区 2018 到 2024 年的城市变化。")
+        reply = str(result.get("reply", "")).strip()
+        if not reply or reply == last_human:
+            reply = "你好！我是城市变化研究智能体，可以帮你分析任意城市在指定时间段内的变化，也可以普通聊天。请输入分析请求，例如：雄安新区 2018 到 2024 年的城市变化。"
         return {
             "messages": [AIMessage(content=reply)],
             "route": "chat",
+            "intent_route": "chat",
         }
-    elif route_type == "analysis":
-        return {"route": "analysis", "user_input": last_human}
-    else:
-        question = result.get("question", "请输入您想分析的城市和时间范围。")
+
+    if route_type == "analysis":
+        # 重置上一轮任务状态，避免同线程连续分析时 findings 跨轮继承
         return {
-            "messages": [AIMessage(content=question)],
-            "route": "clarify",
+            "route": "analysis",
+            "intent_route": "action",
+            "user_input": last_human,
+            "plan": [],
+            "findings": [FINDINGS_RESET],
+            "report": "",
         }
+
+    # clarify
+    question = str(result.get("question", "")).strip()
+    if not question or question == last_human:
+        question = "我还不太确定你的具体需求。你是想普通聊天，还是需要分析某个地区在一段时间内的变化？"
+    return {
+        "messages": [AIMessage(content=question)],
+        "route": "clarify",
+        "intent_route": "clarify",
+    }
+
+
+def _format_recent(messages: list) -> str:
+    """把最近几条消息压成纯文本给路由模型，避免协议对象差异。"""
+    parts = []
+    for m in messages:
+        if isinstance(m, HumanMessage):
+            parts.append(f"用户：{m.content if isinstance(m.content, str) else str(m.content)}")
+        elif isinstance(m, AIMessage):
+            parts.append(f"助手：{m.content if isinstance(m.content, str) else str(m.content)}")
+        else:
+            text = latest_human_text([m]) or ""
+            if text:
+                parts.append(text)
+    return "\n".join(parts) or "（无上下文）"
 
 
 def route_after_router(state: WebState) -> str:
@@ -384,20 +440,6 @@ class ResearcherInput(TypedDict):
     end_year: int
 
 
-_RESEARCHER_SYSTEM = """\
-你是城市变化研究员。针对一个具体研究子任务，收集多源证据后给出研究结论。
-
-工具使用策略：
-- web_search：先用，4-6 个关键词，同方向最多 3 次
-- analyze_satellite_image：文字证据提到空间/物理变化时调用
-- query_poi_history：需要量化支撑时调用
-
-输出格式：
-【研究结论：{子任务名称}】
-[按条列出发现，注明证据来源和置信度]
-"""
-
-
 async def web_researcher_node(state: ResearcherInput) -> dict:
     from graph.researcher_graph import _make_researcher
     from langchain_core.messages import HumanMessage as HM
@@ -419,6 +461,26 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
     agent = _make_researcher()
     findings = ""
     progress_msgs = []
+    # 实时进度写回流（前端 onCustomEvent 接住）。非流式环境下 writer 是 no-op。
+    try:
+        writer = get_stream_writer()
+    except Exception:
+        writer = None
+
+    def _emit(stage: str, detail: str) -> None:
+        if writer is None:
+            return
+        try:
+            writer({
+                "type": "research_progress",
+                "task_id": task["id"],
+                "topic": topic,
+                "stage": stage,
+                "detail": detail,
+                "round": len(progress_msgs) + 1,
+            })
+        except Exception:
+            pass  # 进度事件失败不影响研究流程
 
     try:
         async for event in agent.astream_events(
@@ -434,11 +496,14 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
                 if name == "web_search":
                     hint = tool_input.get("query", "")[:50]
                     progress_msgs.append(f"正在搜索：{hint}")
+                    _emit("searching", f"正在搜索：{hint}")
                 elif name == "analyze_satellite_image":
                     progress_msgs.append(f"正在分析卫星影像...")
+                    _emit("satellite", "正在分析卫星影像...")
                 elif name == "query_poi_history":
                     cat = tool_input.get("category", "")
                     progress_msgs.append(f"正在查询 POI 数据（{cat}）...")
+                    _emit("poi", f"正在查询 POI 数据（{cat}）...")
 
             elif kind == "on_tool_end":
                 output = event.get("data", {}).get("output", "")
@@ -448,8 +513,10 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
                     output_str = str(output)
                 if name == "web_search":
                     progress_msgs.append(f"搜索完成")
+                    _emit("search_done", "搜索完成")
                 elif name in ("analyze_satellite_image", "query_poi_history"):
                     progress_msgs.append(f"{name} 完成")
+                    _emit("tool_done", f"{name} 完成")
 
             elif kind == "on_chat_model_end":
                 msg = event.get("data", {}).get("output")
@@ -461,6 +528,9 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
     except Exception as e:
         logger.error("Researcher 执行失败 | %s: %s", task.get("id"), e)
         findings = f"[{topic}] 研究过程出错：{e}"
+
+    # 完成：通知前端该 task 进度结束（卡片消息随之到达）
+    _emit("complete", f"研究完成（共 {len(progress_msgs)} 步）")
 
     # 输出折叠卡片内容
     progress_text = "\n".join(f"  • {p}" for p in progress_msgs)
@@ -479,24 +549,41 @@ _REPORTER_SYSTEM = """\
 只能基于提供的研究笔记撰写报告，禁止添加未经证实的内容。
 对于笔记中未涉及的方面，明确说明"现有证据不足，本报告不作评价"。
 报告结构清晰，语言专业简洁。
+
+引用规则（务必遵守）：
+- 正文引用证据时使用方括号编号 [n]，编号必须对应随附的统一来源列表，不得自创新编号；
+- 报告结尾输出一个 `## 来源` 区段，按编号列出所有引用过的来源；
+- 若某条来源未在正文中引用，可省略；不要重新编号已存在的来源。
 """
 
 
 async def web_reporter_node(state: WebState) -> dict:
-    findings_text = "\n\n---\n\n".join(state.get("findings") or [])
-    if not findings_text:
+    findings = state.get("findings") or []
+    if not findings:
         report = f"对于{state['location']} {state['start_year']}-{state['end_year']}年的变化，现有证据不足以支持任何结论。"
-    else:
-        resp = await _llm(max_tokens=8192).ainvoke([
-            SystemMessage(content=_REPORTER_SYSTEM),
-            HumanMessage(content=(
-                f"分析对象：{state['location']}\n"
-                f"时间范围：{state['start_year']} 至 {state['end_year']}\n\n"
-                f"研究笔记：\n{findings_text}\n\n"
-                "请撰写城市变化分析报告。"
-            )),
-        ])
-        report = resp.content
+        return {
+            "report": report,
+            "messages": [AIMessage(content=report)],
+        }
+
+    # 合并多份研究笔记：按 URL 去重 + 跨 finding 连续编号 + 同步替换正文 [n]
+    merged = merge_findings_with_sources(findings)
+
+    resp = await _llm(max_tokens=8192).ainvoke([
+        SystemMessage(content=_REPORTER_SYSTEM),
+        HumanMessage(content=(
+            f"分析对象：{state['location']}\n"
+            f"时间范围：{state['start_year']} 至 {state['end_year']}\n\n"
+            f"研究笔记（正文 [n] 已统一编号）：\n{merged.body}\n\n"
+            f"统一来源列表（正文 [n] 必须对应这里的编号）：\n{merged.sources_md}\n\n"
+            "请撰写城市变化分析报告，正文用 [n] 引用来源，报告结尾输出 ## 来源 区段。"
+        )),
+    ])
+    report = resp.content
+
+    # LLM 漏掉来源列表 -> 追加统一列表（不重新编号）
+    if merged.sources and not has_source_section(report):
+        report = f"{report.rstrip()}\n\n{merged.sources_md}"
 
     return {
         "report": report,
