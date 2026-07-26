@@ -1,0 +1,2426 @@
+
+> agent-chat-ui@0.0.0 dev
+> next dev --hostname 0.0.0.0 --port 3005
+
+   ▲ Next.js 15.5.18
+   - Local:        http://localhost:3005
+   - Network:      http://0.0.0.0:3005
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · serverActions
+
+ ✓ Starting...
+ ✓ Ready in 1876ms
+ ○ Compiling / ...
+ ✓ Compiled / in 4.3s (4772 modules)
+ HEAD / 200 in 4964ms
+ ○ Compiling /api/[..._path] ...
+ ✓ Compiled /api/[..._path] in 1740ms (4793 modules)
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/info 200 in 2184ms
+ POST /api/threads 200 in 23ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9e5c-beda-72a2-b071-c7c41ba111b5/runs/stream 200 in 875ms
+ POST /api/threads 200 in 17ms
+ POST /api/threads/019f9e5d-b0ad-76c2-bbb5-168234ef47ac/state 400 in 10ms
+ GET /api/threads/019f9e5d-b0ad-76c2-bbb5-168234ef47ac/state?subgraphs=true 200 in 9ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9e5d-b0ad-76c2-bbb5-168234ef47ac/runs/stream 200 in 947ms
+ POST /api/threads 200 in 14ms
+ POST /api/threads/019f9e5d-eff6-78d3-848f-91382c0da54d/state 200 in 17ms
+ GET /api/threads/019f9e5d-eff6-78d3-848f-91382c0da54d/state?subgraphs=true 200 in 10ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9e5d-eff6-78d3-848f-91382c0da54d/runs/stream 200 in 189752ms
+ GET /api/threads/019f9e5d-eff6-78d3-848f-91382c0da54d/runs 200 in 15ms
+ GET /api/threads/019f9e5d-eff6-78d3-848f-91382c0da54d/state?subgraphs=true 200 in 10ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/threads/019f9e5d-eff6-78d3-848f-91382c0da54d/runs/019f9e5d-f04b-7211-9d3d-cebc527fd89e/stream 200 in 45007ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/threads/019f9e5d-eff6-78d3-848f-91382c0da54d/runs/019f9e5d-f04b-7211-9d3d-cebc527fd89e/stream 200 in 60005ms
+ GET /api/threads/019f9e5d-eff6-78d3-848f-91382c0da54d/runs 200 in 13ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9e5d-eff6-78d3-848f-91382c0da54d/runs/019f9e5d-f04b-7211-9d3d-cebc527fd89e/cancel 202 in 19ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/threads/019f9e5d-eff6-78d3-848f-91382c0da54d/runs 200 in 13ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/threads/019f9e5d-eff6-78d3-848f-91382c0da54d/runs 200 in 13ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ DELETE /api/threads/019f9e5c-beda-72a2-b071-c7c41ba111b5 204 in 14ms
+ DELETE /api/threads/019f9e5d-b0ad-76c2-bbb5-168234ef47ac 204 in 7ms
+ DELETE /api/threads/019f9e5d-eff6-78d3-848f-91382c0da54d 204 in 22ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET / 200 in 727ms
+ ○ Compiling /api/[..._path] ...
+ ✓ Compiled /api/[..._path] in 811ms (2474 modules)
+ ✓ Compiled (2479 modules)
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /favicon.ico 200 in 1423ms
+ GET /api/info 200 in 1398ms
+ POST /api/threads/search 200 in 1401ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads 200 in 25ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/runs/stream 200 in 1000ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 18ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/search 200 in 12ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/runs/stream 200 in 1019ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 20ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/runs/stream 200 in 1862ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 25ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads 200 in 70ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/runs/stream 200 in 1005ms
+ POST /api/threads 200 in 21ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/runs/stream 200 in 835ms
+ POST /api/threads 200 in 24ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f09-b0a9-7511-b96d-41516bd6ee35/runs/stream 200 in 2332ms
+ GET /api/threads/019f9f09-b0a9-7511-b96d-41516bd6ee35/state 200 in 25ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ DELETE /api/threads/019f9f04-b26a-7751-8441-36a31a17e173 204 in 21ms
+ DELETE /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077 204 in 17ms
+ DELETE /api/threads/019f9f09-b0a9-7511-b96d-41516bd6ee35 204 in 10ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/runs/stream 200 in 4840ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 32ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ ✓ Compiled in 1612ms (4773 modules)
+ GET /?threadId=019f9f01-510d-74a2-95ab-f4ef3b64902b 200 in 125ms
+ HEAD / 200 in 464ms
+ ✓ Compiled in 1243ms (4773 modules)
+ GET /?threadId=019f9f01-510d-74a2-95ab-f4ef3b64902b 200 in 90ms
+ ✓ Compiled in 699ms (4773 modules)
+ GET /?threadId=019f9f01-510d-74a2-95ab-f4ef3b64902b 200 in 102ms
+ ✓ Compiled in 898ms (4773 modules)
+ GET /?threadId=019f9f01-510d-74a2-95ab-f4ef3b64902b 200 in 71ms
+ ○ Compiling /api/[..._path] ...
+ ✓ Compiled /api/[..._path] in 683ms (2477 modules)
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/runs/stream 200 in 2725ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 34ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ HEAD / 200 in 588ms
+ ✓ Compiled in 969ms (4773 modules)
+ GET /?threadId=019f9f01-510d-74a2-95ab-f4ef3b64902b 200 in 108ms
+ ○ Compiling /api/[..._path] ...
+ ✓ Compiled /api/[..._path] in 727ms (2477 modules)
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/info 200 in 859ms
+ POST /api/threads/search 200 in 863ms
+ POST /api/threads/search 200 in 866ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 879ms
+ GET /api/info 200 in 14ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 887ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 896ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/info 200 in 35ms
+ POST /api/threads/search 200 in 39ms
+ POST /api/threads/search 200 in 41ms
+ GET /api/info 200 in 13ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads 200 in 19ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f19-d008-7192-aec4-0042bb83b258/runs/stream 200 in 1502ms
+ POST /api/threads/019f9f19-d008-7192-aec4-0042bb83b258/history 200 in 23ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/search 200 in 16ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f16-e649-7a51-88d6-cd66437ea290/history 200 in 26ms
+ POST /api/threads/search 200 in 13ms
+ POST /api/threads/019f9f16-e649-7a51-88d6-cd66437ea290/history 200 in 20ms
+ GET /api/info 200 in 11ms
+ POST /api/threads/search 200 in 14ms
+ POST /api/threads/019f9f16-e649-7a51-88d6-cd66437ea290/history 200 in 20ms
+ GET /api/info 200 in 13ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 64ms
+ GET /api/info 200 in 54ms
+ POST /api/threads/search 200 in 60ms
+ POST /api/threads/search 200 in 60ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 76ms
+ GET /api/info 200 in 13ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 83ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f16-e649-7a51-88d6-cd66437ea290/history 200 in 45ms
+ POST /api/threads/search 200 in 32ms
+ GET /api/info 200 in 53ms
+ POST /api/threads/search 200 in 57ms
+ POST /api/threads/019f9f16-e649-7a51-88d6-cd66437ea290/history 200 in 65ms
+ POST /api/threads/019f9f16-e649-7a51-88d6-cd66437ea290/history 200 in 74ms
+ GET /api/info 200 in 17ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f19-d008-7192-aec4-0042bb83b258/history 200 in 61ms
+ GET /api/info 200 in 55ms
+ POST /api/threads/search 200 in 58ms
+ POST /api/threads/search 200 in 60ms
+ POST /api/threads/019f9f19-d008-7192-aec4-0042bb83b258/history 200 in 61ms
+ POST /api/threads/019f9f19-d008-7192-aec4-0042bb83b258/history 200 in 65ms
+ GET /api/info 200 in 12ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f19-d008-7192-aec4-0042bb83b258/runs/stream 200 in 1804ms
+ POST /api/threads/019f9f19-d008-7192-aec4-0042bb83b258/history 200 in 25ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f19-d008-7192-aec4-0042bb83b258/runs/stream 200 in 1617ms
+ POST /api/threads/019f9f19-d008-7192-aec4-0042bb83b258/history 200 in 23ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f19-d008-7192-aec4-0042bb83b258/runs/stream 200 in 1826ms
+ POST /api/threads/019f9f19-d008-7192-aec4-0042bb83b258/history 200 in 2033ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ ○ Compiling /api/[..._path] ...
+ ✓ Compiled /api/[..._path] in 3.6s (4793 modules)
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/search 200 in 1769ms
+ POST /api/threads/search 200 in 1779ms
+ GET /?chatHistoryOpen=true&threadId=019f9f19-d008-7192-aec4-0042bb83b258 200 in 231ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f19-d008-7192-aec4-0042bb83b258/runs/stream 200 in 227376ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f19-d008-7192-aec4-0042bb83b258/history 404 in 6403ms
+ ○ Compiling /api/[..._path] ...
+ ✓ Compiled /api/[..._path] in 2.2s (4793 modules)
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /?chatHistoryOpen=true&threadId=019f9f19-d008-7192-aec4-0042bb83b258 200 in 107ms
+ POST /api/threads/019f9f19-d008-7192-aec4-0042bb83b258/history 404 in 887ms
+ POST /api/threads/search 200 in 892ms
+ POST /api/threads/search 200 in 908ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ HEAD / 200 in 561ms
+ GET /?chatHistoryOpen=true&threadId=019f9f19-d008-7192-aec4-0042bb83b258 200 in 82ms
+ ○ Compiling /api/[..._path] ...
+ ✓ Compiled /api/[..._path] in 894ms (2474 modules)
+ ✓ Compiled (2479 modules)
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /favicon.ico 200 in 1507ms
+ GET /api/info 200 in 1313ms
+ POST /api/threads/search 200 in 1602ms
+ POST /api/threads/019f9f19-d008-7192-aec4-0042bb83b258/history 404 in 1446ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /?chatHistoryOpen=true&threadId=019f9f19-d008-7192-aec4-0042bb83b258 200 in 568ms
+ GET /favicon.ico 200 in 12ms
+ POST /api/threads/search 200 in 37ms
+ GET /api/info 200 in 43ms
+ POST /api/threads/019f9f19-d008-7192-aec4-0042bb83b258/history 404 in 46ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 40ms
+ GET /api/info 200 in 53ms
+ POST /api/threads/search 200 in 61ms
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 62ms
+ POST /api/threads/search 200 in 69ms
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 71ms
+ GET /api/info 200 in 19ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/info 200 in 29ms
+ POST /api/threads/search 200 in 30ms
+ POST /api/threads/search 200 in 33ms
+ GET /api/info 200 in 12ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ ✓ Compiled in 958ms (4773 modules)
+ GET /?chatHistoryOpen=true 200 in 147ms
+ ✓ Compiled /api/[..._path] in 405ms (2477 modules)
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/info 200 in 495ms
+ POST /api/threads/search 200 in 497ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 27ms
+ GET /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/state 200 in 32ms
+ POST /api/threads/search 200 in 18ms
+ GET /api/info 200 in 34ms
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 38ms
+ POST /api/threads/search 200 in 22ms
+ GET /api/info 200 in 26ms
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 31ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 26ms
+ GET /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/state 200 in 29ms
+ GET /api/info 200 in 48ms
+ POST /api/threads/search 200 in 55ms
+ POST /api/threads/search 200 in 64ms
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 68ms
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 70ms
+ GET /api/info 200 in 24ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 45ms
+ GET /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/state 200 in 47ms
+ GET /api/info 200 in 35ms
+ POST /api/threads/search 200 in 41ms
+ POST /api/threads/search 200 in 41ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 56ms
+ GET /api/info 200 in 16ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 68ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 27ms
+ GET /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/state 200 in 30ms
+ GET /api/info 200 in 36ms
+ POST /api/threads/search 200 in 41ms
+ POST /api/threads/search 200 in 43ms
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 46ms
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 49ms
+ GET /api/info 200 in 15ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 25ms
+ GET /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/state 200 in 26ms
+ GET /api/info 200 in 34ms
+ POST /api/threads/search 200 in 39ms
+ POST /api/threads/search 200 in 41ms
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 43ms
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 47ms
+ GET /api/info 200 in 14ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/state 200 in 24ms
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 27ms
+ GET /api/info 200 in 28ms
+ POST /api/threads/search 200 in 35ms
+ POST /api/threads/search 200 in 35ms
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 38ms
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 40ms
+ GET /api/info 200 in 12ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ DELETE /api/threads/019f9f04-b26a-7751-8441-36a31a17e173 204 in 28ms
+ GET /api/info 200 in 23ms
+ POST /api/threads/search 200 in 27ms
+ POST /api/threads/search 200 in 29ms
+ GET /api/info 200 in 14ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 40ms
+ GET /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/state 200 in 42ms
+ GET /api/info 200 in 28ms
+ POST /api/threads/search 200 in 33ms
+ POST /api/threads/search 200 in 35ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 50ms
+ GET /api/info 200 in 15ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 57ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 27ms
+ GET /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/state 200 in 28ms
+ GET /api/info 200 in 29ms
+ POST /api/threads/search 200 in 34ms
+ POST /api/threads/search 200 in 35ms
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 38ms
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 41ms
+ GET /api/info 200 in 12ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ HEAD /?threadId=019f9f19-d008-7192-aec4-0042bb83b258 200 in 393ms
+ DELETE /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077 204 in 31ms
+ POST /api/threads/search 200 in 42ms
+ GET /api/info 200 in 29ms
+ POST /api/threads/search 200 in 31ms
+ GET /api/info 200 in 13ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 41ms
+ GET /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/state 200 in 43ms
+ GET /api/info 200 in 38ms
+ POST /api/threads/search 200 in 44ms
+ POST /api/threads/search 200 in 45ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 59ms
+ GET /api/info 200 in 16ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 70ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/info 200 in 29ms
+ POST /api/threads/search 200 in 32ms
+ POST /api/threads/search 200 in 33ms
+ GET /api/info 200 in 11ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads 200 in 20ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/runs/stream 200 in 2225ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 28ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/search 200 in 17ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ ✓ Compiled in 2.7s (4773 modules)
+ GET /?chatHistoryOpen=true&threadId=019f9f23-606e-7ea2-ac90-00267d05d8df 200 in 118ms
+ ○ Compiling /api/[..._path] ...
+ ✓ Compiled /api/[..._path] in 509ms (2477 modules)
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/search 200 in 100ms
+ POST /api/threads/search 200 in 602ms
+ GET /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/state 200 in 601ms
+ POST /api/threads/search 200 in 10ms
+ GET /api/info 200 in 22ms
+ POST /api/threads/search 200 in 23ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 31ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 35ms
+ GET /api/info 200 in 11ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ ✓ Compiled in 606ms (4793 modules)
+ GET /?chatHistoryOpen=true&threadId=019f9f23-606e-7ea2-ac90-00267d05d8df 200 in 71ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/search 200 in 28ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 34ms
+ POST /api/threads/search 200 in 11ms
+ GET /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/state 200 in 15ms
+ POST /api/threads/search 200 in 12ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 17ms
+ GET /api/info 200 in 10ms
+ POST /api/threads/search 200 in 11ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 18ms
+ GET /api/info 200 in 8ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 41ms
+ GET /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/state 200 in 46ms
+ GET /api/info 200 in 27ms
+ POST /api/threads/search 200 in 31ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 51ms
+ POST /api/threads/search 200 in 26ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 39ms
+ GET /api/info 200 in 16ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 38ms
+ GET /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/state 200 in 41ms
+ POST /api/threads/search 200 in 17ms
+ GET /api/info 200 in 50ms
+ POST /api/threads/search 200 in 55ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 85ms
+ GET /api/info 200 in 23ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 109ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/runs/stream 200 in 227889ms
+ GET /?chatHistoryOpen=true&threadId=019f9f23-606e-7ea2-ac90-00267d05d8df 200 in 530ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 677ms (2479 modules)
+ GET /favicon.ico 200 in 1210ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/state 200 in 1228ms
+ POST /api/threads/search 200 in 33ms
+ GET /api/info 200 in 43ms
+ POST /api/threads/search 200 in 51ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 54ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 67ms
+ GET /api/info 200 in 16ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ ✓ Compiled in 1403ms (4795 modules)
+ GET /?chatHistoryOpen=true&threadId=019f9f23-606e-7ea2-ac90-00267d05d8df 200 in 93ms
+ HEAD / 200 in 629ms
+ GET /?chatHistoryOpen=true&threadId=019f9f23-606e-7ea2-ac90-00267d05d8df 200 in 62ms
+ GET /favicon.ico 200 in 22ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/state 200 in 51ms
+ POST /api/threads/search 200 in 32ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 48ms
+ GET /api/info 200 in 50ms
+ POST /api/threads/search 200 in 58ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 72ms
+ GET /api/info 200 in 15ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 26ms
+ GET /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/state 200 in 30ms
+ POST /api/threads/search 200 in 15ms
+ GET /api/info 200 in 38ms
+ POST /api/threads/search 200 in 39ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 54ms
+ GET /api/info 200 in 11ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 65ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 29ms
+ GET /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/state 200 in 38ms
+ GET /api/info 200 in 29ms
+ POST /api/threads/search 200 in 34ms
+ POST /api/threads/search 200 in 35ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 45ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 56ms
+ GET /api/info 200 in 18ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ ✓ Compiled in 1694ms (4795 modules)
+ GET /?chatHistoryOpen=true&threadId=019f9f23-606e-7ea2-ac90-00267d05d8df 200 in 80ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 53ms
+ GET /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/state 200 in 56ms
+ GET /api/info 200 in 23ms
+ POST /api/threads/search 200 in 28ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 55ms
+ POST /api/threads/search 200 in 24ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 41ms
+ GET /api/info 200 in 16ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 34ms
+ GET /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/state 200 in 42ms
+ GET /api/info 200 in 36ms
+ POST /api/threads/search 200 in 40ms
+ POST /api/threads/search 200 in 48ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 52ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 64ms
+ GET /api/info 200 in 20ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ HEAD / 200 in 407ms
+ GET /?chatHistoryOpen=true&threadId=019f9f23-606e-7ea2-ac90-00267d05d8df 200 in 57ms
+ GET /favicon.ico 200 in 14ms
+ GET /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/state 200 in 32ms
+ POST /api/threads/search 200 in 35ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 56ms
+ GET /api/info 200 in 54ms
+ POST /api/threads/search 200 in 64ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 79ms
+ GET /api/info 200 in 22ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ ✓ Compiled in 2.2s (4781 modules)
+ GET /?chatHistoryOpen=true&threadId=019f9f23-606e-7ea2-ac90-00267d05d8df 200 in 123ms
+ HEAD / 200 in 444ms
+ ✓ Compiled in 991ms (4781 modules)
+ GET /?chatHistoryOpen=true&threadId=019f9f23-606e-7ea2-ac90-00267d05d8df 200 in 92ms
+ ✓ Compiled in 1742ms (4781 modules)
+ GET /?chatHistoryOpen=true&threadId=019f9f23-606e-7ea2-ac90-00267d05d8df 200 in 88ms
+ HEAD / 200 in 451ms
+ ✓ Compiled in 1113ms (4781 modules)
+ GET /?chatHistoryOpen=true&threadId=019f9f23-606e-7ea2-ac90-00267d05d8df 200 in 95ms
+ ✓ Compiled in 681ms (4781 modules)
+ GET /?chatHistoryOpen=true&threadId=019f9f23-606e-7ea2-ac90-00267d05d8df 200 in 46ms
+ HEAD / 200 in 513ms
+ GET /?chatHistoryOpen=true&threadId=019f9f23-606e-7ea2-ac90-00267d05d8df 200 in 65ms
+ ○ Compiling /api/[..._path] ...
+ ✓ Compiled /api/[..._path] in 693ms (2478 modules)
+ ✓ Compiled (2483 modules)
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /favicon.ico 200 in 1288ms
+ GET /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/state 200 in 1440ms
+ GET /api/info 200 in 28ms
+ POST /api/threads/search 200 in 56ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 61ms
+ POST /api/threads/search 200 in 63ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 77ms
+ GET /api/info 200 in 32ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ ✓ Compiled in 786ms (4803 modules)
+ GET /?chatHistoryOpen=true&threadId=019f9f23-606e-7ea2-ac90-00267d05d8df 200 in 72ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/info 200 in 56ms
+ POST /api/threads/search 200 in 62ms
+ POST /api/threads/search 200 in 65ms
+ GET /api/info 200 in 14ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads 200 in 25ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/runs/stream 200 in 2276ms
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/history 200 in 25ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/search 200 in 15ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 43ms
+ GET /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/state 200 in 18ms
+ POST /api/threads/search 200 in 14ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 32ms
+ GET /api/info 200 in 14ms
+ POST /api/threads/search 200 in 16ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 51ms
+ GET /api/info 200 in 15ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/history 200 in 29ms
+ GET /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/state 200 in 33ms
+ GET /api/info 200 in 35ms
+ POST /api/threads/search 200 in 41ms
+ POST /api/threads/search 200 in 50ms
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/history 200 in 56ms
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/history 200 in 63ms
+ GET /api/info 200 in 19ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ ✓ Compiled in 2.2s (4781 modules)
+ GET /?chatHistoryOpen=true&threadId=019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5 200 in 132ms
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/runs/stream 200 in 340378ms
+ GET /?chatHistoryOpen=true&threadId=019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5 200 in 689ms
+ ○ Compiling /api/[..._path] ...
+ ✓ Compiled /api/[..._path] in 689ms (2478 modules)
+ ✓ Compiled (2483 modules)
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /favicon.ico 200 in 1525ms
+ GET /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/state 200 in 1521ms
+ GET /api/info 200 in 32ms
+ POST /api/threads/search 200 in 61ms
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/history 200 in 57ms
+ POST /api/threads/search 200 in 59ms
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/history 200 in 73ms
+ GET /api/info 200 in 22ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 37ms
+ GET /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/state 200 in 42ms
+ POST /api/threads/search 200 in 38ms
+ GET /api/info 200 in 40ms
+ POST /api/threads/search 200 in 44ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 65ms
+ GET /api/info 200 in 18ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 77ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/history 200 in 36ms
+ GET /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/state 200 in 40ms
+ POST /api/threads/search 200 in 39ms
+ GET /api/info 200 in 40ms
+ POST /api/threads/search 200 in 44ms
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/history 200 in 52ms
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/history 200 in 59ms
+ GET /api/info 200 in 18ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 45ms
+ GET /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/state 200 in 48ms
+ POST /api/threads/search 200 in 19ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 39ms
+ GET /api/info 200 in 56ms
+ POST /api/threads/search 200 in 47ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 57ms
+ GET /api/info 200 in 55ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 39ms
+ GET /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/state 200 in 40ms
+ GET /api/info 200 in 29ms
+ POST /api/threads/search 200 in 36ms
+ POST /api/threads/search 200 in 45ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 49ms
+ GET /api/info 200 in 19ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 62ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ DELETE /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b 204 in 22ms
+ POST /api/threads/search 200 in 31ms
+ GET /api/info 200 in 34ms
+ POST /api/threads/search 200 in 37ms
+ GET /api/info 200 in 14ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 44ms
+ GET /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/state 200 in 67ms
+ GET /api/info 200 in 30ms
+ POST /api/threads/search 200 in 38ms
+ POST /api/threads/search 200 in 39ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 57ms
+ GET /api/info 200 in 20ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 200 in 69ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/history 200 in 28ms
+ GET /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/state 200 in 30ms
+ GET /api/info 200 in 31ms
+ POST /api/threads/search 200 in 37ms
+ POST /api/threads/search 200 in 40ms
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/history 200 in 46ms
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/history 200 in 51ms
+ GET /api/info 200 in 14ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ ✓ Compiled in 920ms (4803 modules)
+ GET /?chatHistoryOpen=true&threadId=019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5 200 in 75ms
+ GET / 200 in 409ms
+ GET /?chatHistoryOpen=true&threadId=019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5 200 in 43ms
+ GET /favicon.ico 200 in 25ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/state 404 in 59ms
+ GET /api/info 200 in 28ms
+ POST /api/threads/search 200 in 206ms
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/history 404 in 203ms
+ POST /api/threads/search 200 in 224ms
+ POST /api/threads/search 200 in 221ms
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/history 404 in 177ms
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/history 404 in 231ms
+ POST /api/threads/019f9f3a-5e75-7cf2-b2e3-ece0d8bacef5/history 404 in 39ms
+ POST /api/threads/search 200 in 43ms
+ GET /api/info 200 in 19ms
+ GET /api/info 200 in 12ms
+ GET /api/info 200 in 12ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 28ms
+ GET /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/state 200 in 31ms
+ GET /api/info 200 in 39ms
+ POST /api/threads/search 200 in 46ms
+ POST /api/threads/search 200 in 48ms
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 52ms
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 53ms
+ GET /api/info 200 in 13ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 27ms
+ GET /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/state 200 in 37ms
+ GET /api/info 200 in 26ms
+ POST /api/threads/search 200 in 32ms
+ POST /api/threads/search 200 in 36ms
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 38ms
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 39ms
+ GET /api/info 200 in 12ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 23ms
+ GET /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/state 200 in 25ms
+ GET /api/info 200 in 33ms
+ POST /api/threads/search 200 in 38ms
+ POST /api/threads/search 200 in 40ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 42ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 44ms
+ GET /api/info 200 in 13ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 25ms
+ GET /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/state 200 in 27ms
+ GET /api/info 200 in 30ms
+ POST /api/threads/search 200 in 34ms
+ POST /api/threads/search 200 in 35ms
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 39ms
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 42ms
+ GET /api/info 200 in 12ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 25ms
+ GET /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/state 200 in 27ms
+ GET /api/info 200 in 33ms
+ POST /api/threads/search 200 in 37ms
+ POST /api/threads/search 200 in 40ms
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 43ms
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 46ms
+ GET /api/info 200 in 24ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/state 200 in 24ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 28ms
+ GET /api/info 200 in 32ms
+ POST /api/threads/search 200 in 36ms
+ POST /api/threads/search 200 in 39ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 42ms
+ POST /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/history 200 in 43ms
+ GET /api/info 200 in 13ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ DELETE /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b 204 in 23ms
+ GET /api/info 200 in 27ms
+ POST /api/threads/search 200 in 36ms
+ POST /api/threads/search 200 in 37ms
+ GET /api/info 200 in 14ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/state 200 in 17ms
+ GET /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/state 200 in 13ms
+ GET /api/threads/019f9f01-510d-74a2-95ab-f4ef3b64902b/state 404 in 11ms
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 25ms
+ GET /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/state 200 in 27ms
+ GET /api/info 200 in 38ms
+ POST /api/threads/search 200 in 44ms
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 45ms
+ POST /api/threads/search 200 in 52ms
+ POST /api/threads/019f9f04-b26a-7751-8441-36a31a17e173/history 200 in 55ms
+ GET /api/info 200 in 13ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 27ms
+ GET /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/state 200 in 30ms
+ GET /api/info 200 in 37ms
+ POST /api/threads/search 200 in 44ms
+ POST /api/threads/search 200 in 45ms
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 49ms
+ POST /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/history 200 in 53ms
+ GET /api/info 200 in 16ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ DELETE /api/threads/019f9f04-b26a-7751-8441-36a31a17e173 204 in 22ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ DELETE /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077 204 in 36ms
+ GET /api/info 200 in 24ms
+ POST /api/threads/search 200 in 27ms
+ POST /api/threads/search 200 in 29ms
+ GET /api/info 200 in 14ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/threads/019f9f06-95aa-75c3-a1f4-79d4d41a8077/state 404 in 16ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads 200 in 22ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/runs/stream 200 in 2294ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 21ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/search 200 in 14ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /?chatHistoryOpen=true&threadId=019f9f44-a152-7750-918d-39632939966c 200 in 59ms
+ GET /favicon.ico 200 in 13ms
+ GET /api/threads/019f9f44-a152-7750-918d-39632939966c/state 200 in 30ms
+ POST /api/threads/search 200 in 28ms
+ GET /api/info 200 in 46ms
+ POST /api/threads/search 200 in 59ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 74ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 74ms
+ GET /api/info 200 in 24ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/runs/stream 200 in 16475ms
+ POST /api/threads/search 200 in 24ms
+ GET /api/info 200 in 12ms
+ POST /api/threads/search 200 in 15ms
+ GET /api/info 200 in 19ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 48ms
+ GET /api/threads/019f9f44-a152-7750-918d-39632939966c/state 200 in 50ms
+ POST /api/threads/search 200 in 21ms
+ GET /api/info 200 in 40ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 49ms
+ POST /api/threads/search 200 in 52ms
+ GET /api/info 200 in 20ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 26ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /?chatHistoryOpen=true&threadId=019f9f44-a152-7750-918d-39632939966c 200 in 53ms
+ GET /favicon.ico 200 in 15ms
+ GET /api/threads/019f9f44-a152-7750-918d-39632939966c/state 200 in 34ms
+ GET /api/info 200 in 33ms
+ POST /api/threads/search 200 in 48ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 65ms
+ POST /api/threads/search 200 in 64ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 77ms
+ GET /api/info 200 in 19ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ ✓ Compiled in 1148ms (4781 modules)
+ GET /?chatHistoryOpen=true&threadId=019f9f44-a152-7750-918d-39632939966c 200 in 128ms
+ ✓ Compiled /api/[..._path] in 408ms (2481 modules)
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/search 200 in 499ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET / 200 in 559ms
+ GET /api/info 200 in 39ms
+ POST /api/threads/search 200 in 43ms
+ POST /api/threads/search 200 in 44ms
+ GET /api/info 200 in 14ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 26ms
+ GET /api/threads/019f9f44-a152-7750-918d-39632939966c/state 200 in 29ms
+ GET /api/info 200 in 25ms
+ POST /api/threads/search 200 in 31ms
+ POST /api/threads/search 200 in 36ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 40ms
+ GET /api/info 200 in 18ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 27ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /?chatHistoryOpen=true&threadId=019f9f44-a152-7750-918d-39632939966c 200 in 55ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 572ms (2483 modules)
+ GET /favicon.ico 200 in 1097ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/threads/019f9f44-a152-7750-918d-39632939966c/state 200 in 1109ms
+ POST /api/threads/search 200 in 48ms
+ GET /api/info 200 in 44ms
+ POST /api/threads/search 200 in 49ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 57ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 66ms
+ GET /api/info 200 in 18ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/runs/stream 200 in 21873ms
+ POST /api/threads/search 200 in 26ms
+ GET /api/info 200 in 12ms
+ POST /api/threads/search 200 in 16ms
+ GET /api/info 200 in 11ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 35ms
+ GET /api/threads/019f9f44-a152-7750-918d-39632939966c/state 200 in 38ms
+ GET /api/info 200 in 27ms
+ POST /api/threads/search 200 in 33ms
+ POST /api/threads/search 200 in 39ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 50ms
+ GET /api/info 200 in 26ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 29ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /?chatHistoryOpen=true&threadId=019f9f44-a152-7750-918d-39632939966c 200 in 310ms
+ GET /favicon.ico 200 in 12ms
+ GET /api/threads/019f9f44-a152-7750-918d-39632939966c/state 200 in 26ms
+ POST /api/threads/search 200 in 19ms
+ GET /api/info 200 in 43ms
+ POST /api/threads/search 200 in 48ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 57ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 65ms
+ GET /api/info 200 in 19ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /?chatHistoryOpen=true&threadId=019f9f44-a152-7750-918d-39632939966c 200 in 65ms
+ GET /favicon.ico 200 in 14ms
+ GET /api/threads/019f9f44-a152-7750-918d-39632939966c/state 200 in 30ms
+ GET /api/info 200 in 38ms
+ POST /api/threads/search 200 in 51ms
+ POST /api/threads/search 200 in 52ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 60ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 67ms
+ GET /api/info 200 in 21ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ ✓ Compiled in 2.2s (4781 modules)
+ GET /?chatHistoryOpen=true&threadId=019f9f44-a152-7750-918d-39632939966c 200 in 204ms
+ GET / 200 in 333ms
+ GET /?chatHistoryOpen=true&threadId=019f9f44-a152-7750-918d-39632939966c 200 in 61ms
+ ○ Compiling /api/[..._path] ...
+ ✓ Compiled /api/[..._path] in 578ms (2478 modules)
+ ✓ Compiled (2483 modules)
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /favicon.ico 200 in 1239ms
+ GET /api/threads/019f9f44-a152-7750-918d-39632939966c/state 200 in 1240ms
+ POST /api/threads/search 200 in 18ms
+ GET /api/info 200 in 38ms
+ POST /api/threads/search 200 in 48ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 61ms
+ GET /api/info 200 in 18ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 66ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/info 200 in 33ms
+ POST /api/threads/search 200 in 39ms
+ POST /api/threads/search 200 in 38ms
+ GET /api/info 200 in 12ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads 200 in 21ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/search 200 in 13ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f4c-7140-72e1-aaf3-12369cb70a72/runs/stream 200 in 10327ms
+ GET /api/threads/019f9f44-a152-7750-918d-39632939966c/state 200 in 25ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 31ms
+ POST /api/threads/search 200 in 22ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 30ms
+ GET /api/info 200 in 20ms
+ POST /api/threads/search 200 in 25ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 27ms
+ GET /api/info 200 in 14ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f4c-7140-72e1-aaf3-12369cb70a72/history 200 in 24ms
+ GET /api/threads/019f9f4c-7140-72e1-aaf3-12369cb70a72/state 200 in 26ms
+ GET /api/info 200 in 27ms
+ POST /api/threads/search 200 in 32ms
+ POST /api/threads/search 200 in 42ms
+ POST /api/threads/019f9f4c-7140-72e1-aaf3-12369cb70a72/history 200 in 44ms
+ POST /api/threads/019f9f4c-7140-72e1-aaf3-12369cb70a72/history 200 in 46ms
+ GET /api/info 200 in 20ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /?chatHistoryOpen=true&threadId=019f9f4c-7140-72e1-aaf3-12369cb70a72 200 in 344ms
+ GET /favicon.ico 200 in 10ms
+ GET /api/threads/019f9f4c-7140-72e1-aaf3-12369cb70a72/state 200 in 20ms
+ GET /api/info 200 in 36ms
+ POST /api/threads/search 200 in 50ms
+ POST /api/threads/search 200 in 51ms
+ POST /api/threads/019f9f4c-7140-72e1-aaf3-12369cb70a72/history 200 in 56ms
+ POST /api/threads/019f9f4c-7140-72e1-aaf3-12369cb70a72/history 200 in 56ms
+ GET /api/info 200 in 23ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ ✓ Compiled in 1177ms (4803 modules)
+ GET /?chatHistoryOpen=true&threadId=019f9f4c-7140-72e1-aaf3-12369cb70a72 200 in 69ms
+ GET / 200 in 208ms
+ GET /?chatHistoryOpen=true&threadId=019f9f4c-7140-72e1-aaf3-12369cb70a72 200 in 52ms
+ GET /favicon.ico 200 in 23ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/threads/019f9f4c-7140-72e1-aaf3-12369cb70a72/state 200 in 43ms
+ GET /api/info 200 in 25ms
+ POST /api/threads/search 200 in 38ms
+ POST /api/threads/019f9f4c-7140-72e1-aaf3-12369cb70a72/history 200 in 38ms
+ POST /api/threads/search 200 in 53ms
+ POST /api/threads/019f9f4c-7140-72e1-aaf3-12369cb70a72/history 200 in 56ms
+ GET /api/info 200 in 17ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 35ms
+ GET /api/threads/019f9f44-a152-7750-918d-39632939966c/state 200 in 36ms
+ GET /api/info 200 in 33ms
+ POST /api/threads/search 200 in 38ms
+ POST /api/threads/search 200 in 43ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 47ms
+ POST /api/threads/019f9f44-a152-7750-918d-39632939966c/history 200 in 57ms
+ GET /api/info 200 in 19ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/search 200 in 20ms
+ GET /api/info 200 in 44ms
+ POST /api/threads/search 200 in 46ms
+ GET /api/info 200 in 11ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ DELETE /api/threads/019f9f4c-7140-72e1-aaf3-12369cb70a72 204 in 18ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads 200 in 19ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ POST /api/threads/search 200 in 13ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ ✓ Compiled in 2.1s (4803 modules)
+ GET /?chatHistoryOpen=true&threadId=019f9f4d-ce24-7240-ba0c-f71e857bcc66 200 in 100ms
+ ✓ Compiled /api/[..._path] in 893ms (4781 modules)
+ ✓ Compiled in 0ms (2481 modules)
+ POST /api/threads/019f9f4d-ce24-7240-ba0c-f71e857bcc66/runs/stream 200 in 102006ms
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 1548ms (5134 modules)
+ POST /api/threads/019f9f4d-ce24-7240-ba0c-f71e857bcc66/history 500 in 5663ms
+ POST /api/threads/019f9f4d-ce24-7240-ba0c-f71e857bcc66/history 500 in 349ms
+ GET /?chatHistoryOpen=true&threadId=019f9f4d-ce24-7240-ba0c-f71e857bcc66 500 in 7002ms
+ GET /?chatHistoryOpen=true&threadId=019f9f4d-ce24-7240-ba0c-f71e857bcc66 500 in 349ms
+ POST /api/threads/search 500 in 7512ms
+ POST /api/threads/search 500 in 325ms
+ GET /?chatHistoryOpen=true&threadId=019f9f4d-ce24-7240-ba0c-f71e857bcc66 500 in 888ms
+ GET /?chatHistoryOpen=true&threadId=019f9f4d-ce24-7240-ba0c-f71e857bcc66 500 in 359ms
+ GET /?chatHistoryOpen=true&threadId=019f9f4d-ce24-7240-ba0c-f71e857bcc66 500 in 999ms
+ GET /?chatHistoryOpen=true&threadId=019f9f4d-ce24-7240-ba0c-f71e857bcc66 500 in 303ms
+ POST /api/threads/search 500 in 664ms
+ POST /api/threads/search 500 in 347ms
+ GET /?chatHistoryOpen=true&threadId=019f9f4d-ce24-7240-ba0c-f71e857bcc66 500 in 854ms
+ GET /?chatHistoryOpen=true&threadId=019f9f4d-ce24-7240-ba0c-f71e857bcc66 500 in 316ms
+ POST /api/threads/019f9f4d-ce24-7240-ba0c-f71e857bcc66/history 500 in 314ms
+ POST /api/threads/019f9f4d-ce24-7240-ba0c-f71e857bcc66/history 500 in 2ms
+ GET /?chatHistoryOpen=true&threadId=019f9f23-606e-7ea2-ac90-00267d05d8df 200 in 768ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1853ms (5139 modules)
+ GET /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/state 404 in 3114ms
+ GET /?chatHistoryOpen=true&threadId=019f9f23-606e-7ea2-ac90-00267d05d8df 200 in 2432ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 933ms (2583 modules)
+ GET /favicon.ico 200 in 1525ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+ GET /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/state 404 in 1541ms
+ POST /api/threads/search 200 in 26ms
+ GET /api/info 200 in 32ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 404 in 45ms
+ POST /api/threads/search 200 in 47ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 404 in 48ms
+ POST /api/threads/search 200 in 31ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 404 in 32ms
+ GET /api/info 200 in 28ms
+ POST /api/threads/search 200 in 40ms
+ POST /api/threads/019f9f23-606e-7ea2-ac90-00267d05d8df/history 404 in 31ms
+ GET /api/info 200 in 9ms
+ GET /api/info 200 in 12ms
+🟠 Notice 🟠
+  
+This is no longer the recommended way of handling authentication with LangGraph servers.
+Now that both Python, and TypeScript graphs support custom authentication and routes, we recommend you implement that in your LangGraph deployment.
+Please read the documentation for more information.
+
+You can disable this warning by passing the `disableWarningLog` option to the `initApiPassthrough` function.
+
+Python Docs: https://langchain-ai.github.io/langgraph/how-tos/auth/custom_auth/
+TypeScript Docs: https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/
+[?25h
