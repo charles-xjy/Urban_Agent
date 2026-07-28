@@ -680,7 +680,7 @@ export function Thread() {
                               htmlFor="render-tool-calls"
                               className="text-sm text-gray-600"
                             >
-                              Hide Tool Calls
+                  隐藏工具调用
                             </Label>
                           </div>
                         </div>
@@ -690,7 +690,7 @@ export function Thread() {
                         >
                           <Plus className="size-5 text-gray-600" />
                           <span className="text-sm text-gray-600">
-                            Upload PDF or Image
+                    上传 PDF 或图片
                           </span>
                         </Label>
                         <input
@@ -719,7 +719,7 @@ export function Thread() {
                               (!input.trim() && contentBlocks.length === 0)
                             }
                           >
-                            Send
+                  发送
                           </Button>
                         )}
                       </div>

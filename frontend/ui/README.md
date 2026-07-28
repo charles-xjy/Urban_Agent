@@ -1,275 +1,98 @@
-# Agent Chat UI
+# 城市变化研究 · Web 前端
 
-## Starting the local LangGraph server on Windows
+基于 [agent-chat-ui](https://github.com/langchain-ai/agent-chat-ui) 模板，通过 SSE 连接 LangGraph Server，提供对话式研究界面。
 
-From the project `frontend/` directory, activate the `xiongan_agent` Conda
-environment and start the local LangGraph API server:
+## 启动
+
+### 1. 后端（LangGraph Server）
+
+在 `frontend/` 目录下，激活 `xiongan_agent` Conda 环境：
 
 ```powershell
 $env:PYTHONUTF8 = "1"
 langgraph dev --host 0.0.0.0 --port 2024 --no-browser
 ```
 
-If Windows reports that `langgraph.exe` was blocked by an application control
-policy, the policy is blocking the generated executable in the Conda
-environment's `Scripts` directory rather than the graph itself. Invoke the same
-CLI entry point through the environment's Python interpreter:
+如果 Windows 应用控制策略阻止了 `langgraph.exe`，改用 Python 入口调用：
 
 ```powershell
 $env:PYTHONUTF8 = "1"
 python -c "from langgraph_cli.cli import cli; cli(prog_name='langgraph')" dev --host 0.0.0.0 --port 2024 --no-browser
 ```
 
-This project currently uses `langgraph-cli 0.4.31`. Do not use
-`python -m langgraph_cli.cli` as a replacement with this version because the
-module does not invoke the CLI entry point automatically.
+> 当前使用 `langgraph-cli 0.4.31`。不要用 `python -m langgraph_cli.cli`，该版本不会自动调用 CLI 入口。
 
-Once started, the LangGraph API is available at `http://localhost:2024`. If the
-next error says that no model is available on ports `8001-8003`, the CLI
-launcher is working; start or configure the vLLM model service separately.
+启动后 API 位于 `http://localhost:2024`。如果报 8001-8003 端口无模型，说明 CLI 正常，需另行启动 vLLM 服务。
 
-Agent Chat UI is a Next.js application which enables chatting with any LangGraph server with a `messages` key through a chat interface.
+### 2. 前端（Next.js）
 
-> [!NOTE]
-> 🎥 Watch the video setup guide [here](https://youtu.be/lInrwVnZ83o).
-
-## Setup
-
-> [!TIP]
-> Don't want to run the app locally? Use the deployed site here: [agentchat.vercel.app](https://agentchat.vercel.app)!
-
-First, clone the repository, or run the [`npx` command](https://www.npmjs.com/package/create-agent-chat-app):
-
-```bash
-npx create-agent-chat-app
-```
-
-or
-
-```bash
-git clone https://github.com/langchain-ai/agent-chat-ui.git
-
-cd agent-chat-ui
-```
-
-Install dependencies:
+在 `frontend/ui/` 目录下：
 
 ```bash
 pnpm install
-```
-
-Run the app:
-
-```bash
 pnpm dev
 ```
 
-The app will be available at `http://localhost:3000`.
+前端监听 `http://0.0.0.0:3000`，局域网设备可通过主机 IP 访问。
 
-## Usage
+## 环境变量
 
-Once the app is running (or if using the deployed site), you'll be prompted to enter:
-
-- **Deployment URL**: The URL of the LangGraph server you want to chat with. This can be a production or development URL.
-- **Assistant/Graph ID**: The name of the graph, or ID of the assistant to use when fetching, and submitting runs via the chat interface.
-- **LangSmith API Key**: (only required for connecting to deployed LangGraph servers) Your LangSmith API key to use when authenticating requests sent to LangGraph servers.
-- **Built with Agent Builder**: Toggle this on for Agent Builder deployments. This automatically sets the auth scheme to `langsmith-api-key`.
-
-After entering these values, click `Continue`. You'll then be redirected to a chat interface where you can start chatting with your LangGraph server.
-
-## Environment Variables
-
-You can bypass the initial setup form by setting the following environment variables:
+`frontend/ui/.env`（已提供 `.env.example`）：
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:2024
+# 浏览器侧 API 地址（推荐 /api，走 Next.js 同源代理）
+NEXT_PUBLIC_API_URL=/api
 NEXT_PUBLIC_ASSISTANT_ID=agent
-NEXT_PUBLIC_AUTH_SCHEME=
+
+# 服务端代理目标（Next.js 把 /api/* 转发到 LangGraph Server）
+LANGGRAPH_API_URL=http://localhost:2024
 ```
 
-> [!NOTE]
-> If you are connecting to a LangSmith Agent Builder deployment, set `NEXT_PUBLIC_AUTH_SCHEME=langsmith-api-key`.
+设置后跳过初始配置表单，直接进入对话界面。
 
-> [!TIP]
-> If you want to connect to a production LangGraph server, read the [Going to Production](#going-to-production) section.
+## 项目结构
 
-To use these variables:
+```
+frontend/
+├── graph.py              # LangGraph 主图（router → planner → researcher → reporter）
+├── langgraph.json        # LangGraph Server 配置
+├── .env                  # 后端环境变量（模型地址等）
+└── ui/
+    ├── src/
+    │   ├── app/api/      # Next.js API 代理（/api/* → LangGraph Server）
+    │   ├── components/thread/   # 对话界面（消息渲染、进度卡片、Markdown）
+    │   └── providers/Stream.tsx # SSE 连接与状态管理
+    └── .env              # 前端环境变量
+```
 
-1. Copy the `.env.example` file to a new file named `.env`
-2. Fill in the values in the `.env` file
-3. Restart the application
+## 消息显示控制
 
-When these environment variables are set, the application will use them instead of showing the setup form.
+### 隐藏流式输出
 
-## Hiding Messages in the Chat
-
-You can control the visibility of messages within the Agent Chat UI in two main ways:
-
-**1. Prevent Live Streaming:**
-
-To stop messages from being displayed _as they stream_ from an LLM call, add the `langsmith:nostream` tag to the chat model's configuration. The UI normally uses `on_chat_model_stream` events to render streaming messages; this tag prevents those events from being emitted for the tagged model.
-
-_Python Example:_
+对内部 LLM 调用添加 `TAG_NOSTREAM` 标签，前端不会渲染其流式 token：
 
 ```python
-from langchain_anthropic import ChatAnthropic
+from langgraph.constants import TAG_NOSTREAM
 
-# Add tags via the .with_config method
-model = ChatAnthropic().with_config(
-    config={"tags": ["langsmith:nostream"]}
-)
+resp = await llm.ainvoke(messages, config={"tags": [TAG_NOSTREAM]})
 ```
 
-_TypeScript Example:_
+当前 `router_node`、`parse_input_node`、`web_planner_node`、`web_researcher_node` 的内部调用均已添加此标签。
 
-```typescript
-import { ChatAnthropic } from "@langchain/anthropic";
+### 完全隐藏消息
 
-const model = new ChatAnthropic()
-  // Add tags via the .withConfig method
-  .withConfig({ tags: ["langsmith:nostream"] });
-```
-
-**Note:** Even if streaming is hidden this way, the message will still appear after the LLM call completes if it's saved to the graph's state without further modification.
-
-**2. Hide Messages Permanently:**
-
-To ensure a message is _never_ displayed in the chat UI (neither during streaming nor after being saved to state), prefix its `id` field with `do-not-render-` _before_ adding it to the graph's state, along with adding the `langsmith:do-not-render` tag to the chat model's configuration. The UI explicitly filters out any message whose `id` starts with this prefix.
-
-_Python Example:_
+将消息 `id` 加上 `do-not-render-` 前缀，前端会彻底过滤：
 
 ```python
-result = model.invoke([messages])
-# Prefix the ID before saving to state
 result.id = f"do-not-render-{result.id}"
 return {"messages": [result]}
 ```
 
-_TypeScript Example:_
+## Researcher 进度系统
 
-```typescript
-const result = await model.invoke([messages]);
-// Prefix the ID before saving to state
-result.id = `do-not-render-${result.id}`;
-return { messages: [result] };
-```
+后端通过 `get_stream_writer()` 发送自定义事件，前端 `Stream.tsx` 按 `execution_id` 聚合为实时进度卡片：
 
-This approach guarantees the message remains completely hidden from the user interface.
-
-## Rendering Artifacts
-
-The Agent Chat UI supports rendering artifacts in the chat. Artifacts are rendered in a side panel to the right of the chat. To render an artifact, you can obtain the artifact context from the `thread.meta.artifact` field. Here's a sample utility hook for obtaining the artifact context:
-
-```tsx
-export function useArtifact<TContext = Record<string, unknown>>() {
-  type Component = (props: {
-    children: React.ReactNode;
-    title?: React.ReactNode;
-  }) => React.ReactNode;
-
-  type Context = TContext | undefined;
-
-  type Bag = {
-    open: boolean;
-    setOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
-
-    context: Context;
-    setContext: (value: Context | ((prev: Context) => Context)) => void;
-  };
-
-  const thread = useStreamContext<
-    { messages: Message[]; ui: UIMessage[] },
-    { MetaType: { artifact: [Component, Bag] } }
-  >();
-
-  return thread.meta?.artifact;
-}
-```
-
-After which you can render additional content using the `Artifact` component from the `useArtifact` hook:
-
-```tsx
-import { useArtifact } from "../utils/use-artifact";
-import { LoaderIcon } from "lucide-react";
-
-export function Writer(props: {
-  title?: string;
-  content?: string;
-  description?: string;
-}) {
-  const [Artifact, { open, setOpen }] = useArtifact();
-
-  return (
-    <>
-      <div
-        onClick={() => setOpen(!open)}
-        className="cursor-pointer rounded-lg border p-4"
-      >
-        <p className="font-medium">{props.title}</p>
-        <p className="text-sm text-gray-500">{props.description}</p>
-      </div>
-
-      <Artifact title={props.title}>
-        <p className="whitespace-pre-wrap p-4">{props.content}</p>
-      </Artifact>
-    </>
-  );
-}
-```
-
-## Going to Production
-
-Once you're ready to go to production, you'll need to update how you connect, and authenticate requests to your deployment. By default, the Agent Chat UI is setup for local development, and connects to your LangGraph server directly from the client. This is not possible if you want to go to production, because it requires every user to have their own LangSmith API key, and set the LangGraph configuration themselves.
-
-### Production Setup
-
-To productionize the Agent Chat UI, you'll need to pick one of two ways to authenticate requests to your LangGraph server. Below, I'll outline the two options:
-
-### Quickstart - API Passthrough
-
-The quickest way to productionize the Agent Chat UI is to use the [API Passthrough](https://github.com/bracesproul/langgraph-nextjs-api-passthrough) package ([NPM link here](https://www.npmjs.com/package/langgraph-nextjs-api-passthrough)). This package provides a simple way to proxy requests to your LangGraph server, and handle authentication for you.
-
-This repository already contains all of the code you need to start using this method. The only configuration you need to do is set the proper environment variables.
-
-```bash
-NEXT_PUBLIC_ASSISTANT_ID="agent"
-# This should be the deployment URL of your LangGraph server
-LANGGRAPH_API_URL="https://my-agent.default.us.langgraph.app"
-# This should be the URL of your website + "/api". This is how you connect to the API proxy
-NEXT_PUBLIC_API_URL="https://my-website.com/api"
-# Your LangSmith API key which is injected into requests inside the API proxy
-LANGSMITH_API_KEY="lsv2_..."
-```
-
-Let's cover what each of these environment variables does:
-
-- `NEXT_PUBLIC_ASSISTANT_ID`: The ID of the assistant you want to use when fetching, and submitting runs via the chat interface. This still needs the `NEXT_PUBLIC_` prefix, since it's not a secret, and we use it on the client when submitting requests.
-- `LANGGRAPH_API_URL`: The URL of your LangGraph server. This should be the production deployment URL.
-- `NEXT_PUBLIC_API_URL`: The URL of your website + `/api`. This is how you connect to the API proxy. For the [Agent Chat demo](https://agentchat.vercel.app), this would be set as `https://agentchat.vercel.app/api`. You should set this to whatever your production URL is.
-- `LANGSMITH_API_KEY`: Your LangSmith API key to use when authenticating requests sent to LangGraph servers. Once again, do _not_ prefix this with `NEXT_PUBLIC_` since it's a secret, and is only used on the server when the API proxy injects it into the request to your deployed LangGraph server.
-
-For in depth documentation, consult the [LangGraph Next.js API Passthrough](https://www.npmjs.com/package/langgraph-nextjs-api-passthrough) docs.
-
-### Advanced Setup - Custom Authentication
-
-Custom authentication in your LangGraph deployment is an advanced, and more robust way of authenticating requests to your LangGraph server. Using custom authentication, you can allow requests to be made from the client, without the need for a LangSmith API key. Additionally, you can specify custom access controls on requests.
-
-To set this up in your LangGraph deployment, please read the LangGraph custom authentication docs for [Python](https://langchain-ai.github.io/langgraph/tutorials/auth/getting_started/), and [TypeScript here](https://langchain-ai.github.io/langgraphjs/how-tos/auth/custom_auth/).
-
-Once you've set it up on your deployment, you should make the following changes to the Agent Chat UI:
-
-1. Configure any additional API requests to fetch the authentication token from your LangGraph deployment which will be used to authenticate requests from the client.
-2. Set the `NEXT_PUBLIC_API_URL` environment variable to your production LangGraph deployment URL.
-3. Set the `NEXT_PUBLIC_ASSISTANT_ID` environment variable to the ID of the assistant you want to use when fetching, and submitting runs via the chat interface.
-4. Modify the [`useTypedStream`](src/providers/Stream.tsx) (extension of `useStream`) hook to pass your authentication token through headers to the LangGraph server:
-
-```tsx
-const streamValue = useTypedStream({
-  apiUrl: process.env.NEXT_PUBLIC_API_URL,
-  assistantId: process.env.NEXT_PUBLIC_ASSISTANT_ID,
-  // ... other fields
-  defaultHeaders: {
-    Authentication: `Bearer ${addYourTokenHere}`, // this is where you would pass your authentication token
-  },
-});
-```
+- 事件字段：`execution_id`、`task_id`、`topic`、`stage`、`detail`、`content`、`status`、`sequence`
+- 状态流转：`running` → `finalizing` → `completed` / `failed`
+- 持久化卡片（`name="internal"` 的 AIMessage）到达后，临时进度条自动清除
+- 卡片 payload 为 version 3 JSON，内嵌完整 events 时间线
