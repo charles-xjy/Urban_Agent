@@ -631,7 +631,7 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
         async for event in agent.astream_events(
             {"messages": [HM(content=query)]},
             config={
-                "recursion_limit": 80,
+                "recursion_limit": 40,
                 "tags": [TAG_NOSTREAM],
             },
             version="v2",
@@ -708,8 +708,25 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
 
     except Exception as e:
         logger.error("Researcher 执行失败 | %s: %s", task.get("id"), e)
-        findings = f"[{topic}] 研究过程出错：{e}"
         terminal_status = "failed"
+        # 兜底：用已收集的搜索/工具结果拼出摘要，避免 findings 为空
+        fallback_parts = []
+        for sg in search_groups:
+            for item in sg.get("results", [])[:5]:
+                title = item.get("title", "")
+                snippet = item.get("snippet", "")
+                url = item.get("url", "")
+                if title:
+                    fallback_parts.append(f"- {title}: {snippet} ({url})")
+        for tr in tool_results:
+            fallback_parts.append(f"- [{tr['tool']}] {tr['summary']}")
+        if fallback_parts:
+            findings = (
+                f"[{topic}] 研究未正常收敛（{e}），以下为已收集的原始材料：\n"
+                + "\n".join(fallback_parts)
+            )
+        else:
+            findings = f"[{topic}] 研究过程出错：{e}"
 
     if terminal_status == "completed":
         if findings:
