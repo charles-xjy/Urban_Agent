@@ -1,5 +1,33 @@
 # Agent Chat UI
 
+## Starting the local LangGraph server on Windows
+
+From the project `frontend/` directory, activate the `xiongan_agent` Conda
+environment and start the local LangGraph API server:
+
+```powershell
+$env:PYTHONUTF8 = "1"
+langgraph dev --host 0.0.0.0 --port 2024 --no-browser
+```
+
+If Windows reports that `langgraph.exe` was blocked by an application control
+policy, the policy is blocking the generated executable in the Conda
+environment's `Scripts` directory rather than the graph itself. Invoke the same
+CLI entry point through the environment's Python interpreter:
+
+```powershell
+$env:PYTHONUTF8 = "1"
+python -c "from langgraph_cli.cli import cli; cli(prog_name='langgraph')" dev --host 0.0.0.0 --port 2024 --no-browser
+```
+
+This project currently uses `langgraph-cli 0.4.31`. Do not use
+`python -m langgraph_cli.cli` as a replacement with this version because the
+module does not invoke the CLI entry point automatically.
+
+Once started, the LangGraph API is available at `http://localhost:2024`. If the
+next error says that no model is available on ports `8001-8003`, the CLI
+launcher is working; start or configure the vLLM model service separately.
+
 Agent Chat UI is a Next.js application which enables chatting with any LangGraph server with a `messages` key through a chat interface.
 
 > [!NOTE]

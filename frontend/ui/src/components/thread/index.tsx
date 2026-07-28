@@ -41,15 +41,23 @@ interface ResearchTask {
 
 function StatusIcon({ status }: { status: string }) {
   if (status === "in_progress")
-    return <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-amber-500" />;
+    return (
+      <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-amber-500" />
+    );
   if (status === "completed")
     return <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />;
   if (status === "error")
     return <XCircle className="h-4 w-4 shrink-0 text-red-500" />;
-  return <Circle className="h-4 w-4 shrink-0 text-foreground/25" />;
+  return <Circle className="text-foreground/25 h-4 w-4 shrink-0" />;
 }
 
-function TaskPlanView({ plan, findings }: { plan: ResearchTask[]; findings: string[] }) {
+function TaskPlanView({
+  plan,
+  findings,
+}: {
+  plan: ResearchTask[];
+  findings: string[];
+}) {
   const getTaskStatus = (task: ResearchTask): string => {
     const match = findings.find((f) => f.startsWith(`=== ${task.topic} ===`));
     if (match) return "completed";
@@ -57,15 +65,18 @@ function TaskPlanView({ plan, findings }: { plan: ResearchTask[]; findings: stri
   };
   const done = plan.filter((t) => getTaskStatus(t) === "completed").length;
   return (
-    <div className="rounded-xl border border-border/50 bg-muted/20 px-4 py-3 text-sm">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground/50">
+    <div className="border-border/50 bg-muted/20 rounded-xl border px-4 py-3 text-sm">
+      <p className="text-foreground/50 mb-2 text-xs font-semibold tracking-wide uppercase">
         研究进度 {done}/{plan.length}
       </p>
       <div className="flex flex-col gap-1.5">
         {plan.map((t) => {
           const status = getTaskStatus(t);
           return (
-            <div key={t.id} className="flex items-center gap-2">
+            <div
+              key={t.id}
+              className="flex items-center gap-2"
+            >
               <StatusIcon status={status} />
               <span
                 className={cn(
@@ -95,13 +106,16 @@ function ResearchProgressList({
   );
   if (items.length === 0) return null;
   return (
-    <div className="rounded-xl border border-border/50 bg-muted/20 px-4 py-3 text-sm">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground/50">
+    <div className="border-border/50 bg-muted/20 rounded-xl border px-4 py-3 text-sm">
+      <p className="text-foreground/50 mb-2 text-xs font-semibold tracking-wide uppercase">
         正在研究…
       </p>
       <div className="flex flex-col gap-1.5">
         {items.map((item) => (
-          <ActiveAgentCard key={item.task_id} item={item} />
+          <ActiveAgentCard
+            key={item.execution_id}
+            item={item}
+          />
         ))}
       </div>
     </div>
@@ -109,51 +123,86 @@ function ResearchProgressList({
 }
 
 function ActiveAgentCard({ item }: { item: ResearchProgressItem }) {
-  const [open, setOpen] = useState(false);
+  const stream = useStreamContext();
+  const open = stream.agentCardOpen[item.execution_id] ?? false;
   const agentNumber = Number(item.task_id.match(/\d+/)?.[0] ?? 0);
+  const isFailed = item.status === "failed";
+  const isFinalizing = item.status === "finalizing";
+  const statusLabel = isFailed
+    ? "执行失败"
+    : isFinalizing
+      ? "收尾中"
+      : "运行中";
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border/40 bg-background/70">
+    <div className="border-border/40 bg-background/70 overflow-hidden rounded-lg border">
       <button
         type="button"
         aria-expanded={open}
         className="flex w-full items-center gap-2 px-3 py-2 text-left"
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => stream.toggleAgentCard(item.execution_id)}
       >
         {open ? (
-          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-foreground/40" />
+          <ChevronDown className="text-foreground/40 h-3.5 w-3.5 shrink-0" />
         ) : (
-          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-foreground/40" />
+          <ChevronRight className="text-foreground/40 h-3.5 w-3.5 shrink-0" />
         )}
-        <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-amber-500" />
-        <span className="min-w-0 flex-1 truncate font-medium text-foreground/75">
+        {isFailed ? (
+          <XCircle className="h-4 w-4 shrink-0 text-red-500" />
+        ) : (
+          <LoaderCircle className="h-4 w-4 shrink-0 animate-spin text-amber-500" />
+        )}
+        <span className="text-foreground/75 min-w-0 flex-1 truncate font-medium">
           Agent {agentNumber || "—"} · {item.topic}
         </span>
-        <span className="shrink-0 text-xs text-amber-600">运行中</span>
+        <span
+          className={cn(
+            "shrink-0 text-xs",
+            isFailed ? "text-red-600" : "text-amber-600",
+          )}
+        >
+          {statusLabel}
+        </span>
       </button>
 
       {open && (
-        <div className="border-t border-border/30 px-3 py-2">
+        <div className="border-border/30 border-t px-3 py-2">
           <div className="flex flex-col gap-2">
-            {(item.history ?? [
-              {
-                stage: item.stage,
-                detail: item.detail,
-                round: item.round,
-              },
-            ]).map((event, index, history) => {
+            {(
+              item.history ?? [
+                {
+                  stage: item.stage,
+                  detail: item.detail,
+                  content: item.content,
+                  status: item.status,
+                  sequence: item.sequence,
+                  round: item.round,
+                },
+              ]
+            ).map((event, index, history) => {
               const isLatest = index === history.length - 1;
+              const eventFailed = event.status === "failed";
               return (
                 <div
-                  key={`${event.round}-${event.stage}-${index}`}
-                  className="flex items-start gap-2 text-xs text-foreground/65"
+                  key={`${event.sequence}-${event.stage}-${index}`}
+                  className="text-foreground/65 flex items-start gap-2 text-xs"
                 >
-                  {isLatest ? (
+                  {eventFailed ? (
+                    <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-red-500" />
+                  ) : isLatest && !isFinalizing ? (
                     <LoaderCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 animate-spin text-amber-500" />
                   ) : (
                     <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-500" />
                   )}
-                  <span className="whitespace-pre-wrap">{event.detail}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="whitespace-pre-wrap">{event.detail}</p>
+                    {event.content &&
+                      event.content.trim() !== event.detail.trim() && (
+                        <pre className="bg-muted/50 text-foreground/55 mt-1.5 max-h-52 overflow-auto rounded-md px-2.5 py-2 text-[11px] leading-5 whitespace-pre-wrap">
+                          {event.content}
+                        </pre>
+                      )}
+                  </div>
                 </div>
               );
             })}
@@ -248,26 +297,18 @@ export function Thread() {
 
   const stream = useStreamContext();
   const isLoading = stream.isLoading;
-  const plan = (stream.values as Record<string, unknown>)
-    ?.plan as ResearchTask[] | undefined;
-  const findings = (stream.values as Record<string, unknown>)
-    ?.findings as string[] | undefined;
+  const plan = (stream.values as Record<string, unknown>)?.plan as
+    | ResearchTask[]
+    | undefined;
+  const findings = (stream.values as Record<string, unknown>)?.findings as
+    | string[]
+    | undefined;
 
-  const messages = stream.messages.filter((message, index) => {
-    if (message.id?.startsWith(DO_NOT_RENDER_ID_PREFIX)) return false;
-    if ((message as Record<string, unknown>).name === "internal") return true;
-
-    // 子图消息只属于对应 Agent 的折叠详情，不进入主对话消息流。
-    const streamMetadata = stream.getMessagesMetadata(message, index)
-      ?.streamMetadata;
-    const checkpointNamespace =
-      streamMetadata?.langgraph_checkpoint_ns ??
-      streamMetadata?.checkpoint_ns;
-    return !(
-      typeof checkpointNamespace === "string" &&
-      checkpointNamespace.length > 0
-    );
-  });
+  // 内部模型调用由后端使用 TAG_NOSTREAM 隔离；这里保留主图实时消息，
+  // 避免把带 checkpoint namespace 的主 Agent 回复误判为子 Agent 消息。
+  const messages = stream.messages.filter(
+    (message) => !message.id?.startsWith(DO_NOT_RENDER_ID_PREFIX),
+  );
 
   const lastError = useRef<string | undefined>(undefined);
 
@@ -307,7 +348,6 @@ export function Thread() {
     }
   }, [stream.error]);
 
-
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if ((input.trim().length === 0 && contentBlocks.length === 0) || isLoading)
@@ -340,7 +380,6 @@ export function Thread() {
             resume: input.trim(),
           },
           streamMode: ["values"],
-          streamSubgraphs: true,
           streamResumable: true,
           optimisticValues: (prev) => ({
             ...prev,
@@ -358,7 +397,6 @@ export function Thread() {
       { messages: [...toolMessages, newHumanMessage], context },
       {
         streamMode: ["values"],
-        streamSubgraphs: true,
         streamResumable: true,
         optimisticValues: (prev) => ({
           ...prev,
@@ -382,7 +420,6 @@ export function Thread() {
     stream.submit(undefined, {
       checkpoint: parentCheckpoint,
       streamMode: ["values"],
-      streamSubgraphs: true,
       streamResumable: true,
     });
   };
@@ -534,7 +571,9 @@ export function Thread() {
                     // 在最后一条 human 消息后插入任务进度列表
                     const isLastHuman =
                       message.type === "human" &&
-                      !messages.slice(index + 1).some((m) => m.type === "human");
+                      !messages
+                        .slice(index + 1)
+                        .some((m) => m.type === "human");
                     return (
                       <Fragment key={message.id || `${message.type}-${index}`}>
                         {message.type === "human" ? (
@@ -550,7 +589,10 @@ export function Thread() {
                           />
                         )}
                         {isLastHuman && !!plan?.length && !stream.interrupt && (
-                          <TaskPlanView plan={plan} findings={findings ?? []} />
+                          <TaskPlanView
+                            plan={plan}
+                            findings={findings ?? []}
+                          />
                         )}
                       </Fragment>
                     );

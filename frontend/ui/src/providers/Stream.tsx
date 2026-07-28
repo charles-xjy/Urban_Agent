@@ -40,25 +40,44 @@ export type StateType = {
 /** Researcher 执行中的实时进度事件（后端 get_stream_writer 发出）。 */
 export type ResearchProgressEvent = {
   type: "research_progress";
+  execution_id?: string;
   task_id: string;
   topic: string;
   stage: string;
   detail: string;
+  content?: string;
+  status?: AgentExecutionStatus;
+  sequence?: number;
+  round: number;
+};
+
+export type AgentExecutionStatus =
+  | "running"
+  | "finalizing"
+  | "completed"
+  | "failed";
+
+export type ResearchProgressHistoryItem = {
+  stage: string;
+  detail: string;
+  content?: string;
+  status: AgentExecutionStatus;
+  sequence: number;
   round: number;
 };
 
 /** 单个 task 的进度条目。 */
 export type ResearchProgressItem = {
+  execution_id: string;
   task_id: string;
   topic: string;
   stage: string;
   detail: string;
+  content?: string;
+  status: AgentExecutionStatus;
+  sequence: number;
   round: number;
-  history: Array<{
-    stage: string;
-    detail: string;
-    round: number;
-  }>;
+  history: ResearchProgressHistoryItem[];
   /** 最后一次更新时间（用于排序/清理）。 */
   ts: number;
 };
@@ -77,8 +96,31 @@ const useTypedStream = useStream<
 
 type StreamContextType = ReturnType<typeof useTypedStream> & {
   researchProgress: Record<string, ResearchProgressItem>;
+  agentCardOpen: Record<string, boolean>;
+  toggleAgentCard: (executionId: string) => void;
 };
 const StreamContext = createContext<StreamContextType | undefined>(undefined);
+
+function getPersistedAgentExecutionIds(messages: Message[]): Set<string> {
+  const executionIds = new Set<string>();
+  for (const message of messages) {
+    if ((message as Record<string, unknown>).name !== "internal") continue;
+    if (typeof message.content !== "string") continue;
+    const payloadStart = message.content.indexOf("\n");
+    if (payloadStart < 0) continue;
+    try {
+      const payload = JSON.parse(message.content.slice(payloadStart + 1)) as {
+        execution_id?: unknown;
+      };
+      if (typeof payload.execution_id === "string") {
+        executionIds.add(payload.execution_id);
+      }
+    } catch {
+      // 旧版 internal 消息不是结构化 JSON，不参与 execution_id 交接。
+    }
+  }
+  return executionIds;
+}
 
 async function sleep(ms = 4000) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -126,6 +168,15 @@ const StreamSession = ({
   const [researchProgress, setResearchProgress] = useState<
     Record<string, ResearchProgressItem>
   >({});
+  const [agentCardOpen, setAgentCardOpen] = useState<Record<string, boolean>>(
+    {},
+  );
+  const toggleAgentCard = useCallback((executionId: string) => {
+    setAgentCardOpen((prev) => ({
+      ...prev,
+      [executionId]: !prev[executionId],
+    }));
+  }, []);
   const streamValue = useTypedStream({
     apiUrl,
     apiKey: apiKey ?? undefined,
@@ -145,7 +196,7 @@ const StreamSession = ({
         });
         return;
       }
-      // researcher 实时进度事件：按 task_id 聚合到本地 state。
+      // researcher 实时进度事件：按 execution_id 聚合到本地 state。
       if (
         event &&
         typeof event === "object" &&
@@ -153,33 +204,47 @@ const StreamSession = ({
       ) {
         const ev = event as ResearchProgressEvent;
         setResearchProgress((prev) => {
-          // stage === "complete" 表示该 task 已结束，清掉进度（卡片接管展示）。
-          if (ev.stage === "complete") {
-            const next = { ...prev };
-            delete next[ev.task_id];
-            return next;
-          }
-          const previous = prev[ev.task_id];
+          const executionId = ev.execution_id || ev.task_id;
+          const previous = prev[executionId];
           const previousHistory = previous?.history ?? [];
           const lastEvent = previousHistory.at(-1);
+          const sequence = ev.sequence ?? ev.round;
+          const status =
+            ev.status ??
+            (ev.stage === "complete"
+              ? "finalizing"
+              : ev.stage === "failed"
+                ? "failed"
+                : "running");
           const history =
-            lastEvent?.stage === ev.stage && lastEvent.detail === ev.detail
+            (lastEvent?.sequence === sequence &&
+              lastEvent.stage === ev.stage) ||
+            (lastEvent?.stage === ev.stage &&
+              lastEvent.detail === ev.detail &&
+              lastEvent.content === ev.content)
               ? previousHistory
               : [
                   ...previousHistory,
                   {
                     stage: ev.stage,
                     detail: ev.detail,
+                    content: ev.content,
+                    status,
+                    sequence,
                     round: ev.round,
                   },
                 ];
           return {
             ...prev,
-            [ev.task_id]: {
+            [executionId]: {
+              execution_id: executionId,
               task_id: ev.task_id,
               topic: ev.topic,
               stage: ev.stage,
               detail: ev.detail,
+              content: ev.content,
+              status,
+              sequence,
               round: ev.round,
               history,
               ts: Date.now(),
@@ -196,6 +261,20 @@ const StreamSession = ({
       sleep().then(() => getThreads().then(setThreads).catch(console.error));
     },
   });
+  const streamMessages = streamValue.messages;
+
+  useEffect(() => {
+    const persistedExecutionIds = getPersistedAgentExecutionIds(streamMessages);
+    if (persistedExecutionIds.size === 0) return;
+    setResearchProgress((prev) => {
+      const entries = Object.entries(prev);
+      const nextEntries = entries.filter(
+        ([executionId]) => !persistedExecutionIds.has(executionId),
+      );
+      if (nextEntries.length === entries.length) return prev;
+      return Object.fromEntries(nextEntries);
+    });
+  }, [streamMessages]);
 
   useEffect(() => {
     checkGraphStatus(apiUrl, apiKey, authScheme).then((ok) => {
@@ -220,7 +299,7 @@ const StreamSession = ({
   // toolProgress, and incorrectly add the unsupported "tools" mode.
   const contextValue = Object.assign(
     Object.create(streamValue) as ReturnType<typeof useTypedStream>,
-    { researchProgress },
+    { researchProgress, agentCardOpen, toggleAgentCard },
   );
 
   return (
@@ -343,17 +422,11 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
       });
 
     return () => controller.abort();
-  }, [
-    apiKey,
-    finalApiUrl,
-    finalAuthScheme,
-    setThreadId,
-    threadId,
-  ]);
+  }, [apiKey, finalApiUrl, finalAuthScheme, setThreadId, threadId]);
 
   if (threadValidation === "checking") {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+      <div className="text-muted-foreground flex min-h-screen items-center justify-center text-sm">
         正在加载对话…
       </div>
     );
@@ -372,7 +445,8 @@ export const StreamProvider: React.FC<{ children: ReactNode }> = ({
               </h1>
             </div>
             <p className="text-muted-foreground">
-              欢迎使用城市变化研究智能体！开始前，请输入部署地址以及 assistant / graph ID。
+              欢迎使用城市变化研究智能体！开始前，请输入部署地址以及 assistant /
+              graph ID。
             </p>
           </div>
           <form

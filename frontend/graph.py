@@ -21,10 +21,11 @@ import re
 import sys
 from datetime import datetime
 from typing import Annotated
+from uuid import uuid4
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
-from langgraph.constants import Send
+from langgraph.constants import Send, TAG_NOSTREAM
 from langgraph.graph import END, START, StateGraph
 from langgraph.config import get_stream_writer
 from langgraph.graph.message import add_messages
@@ -177,10 +178,13 @@ async def router_node(state: WebState) -> dict:
 
     # 3. 模型分类：传最近 8 条，使连续确认能结合上一轮追问理解
     recent = messages[-8:]
-    resp = await _llm(max_tokens=256).ainvoke([
-        SystemMessage(content=_ROUTER_SYSTEM),
-        HumanMessage(content=_format_recent(recent)),
-    ])
+    resp = await _llm(max_tokens=256).ainvoke(
+        [
+            SystemMessage(content=_ROUTER_SYSTEM),
+            HumanMessage(content=_format_recent(recent)),
+        ],
+        config={"tags": [TAG_NOSTREAM]},
+    )
     raw = re.sub(r"```(?:json)?\s*|\s*```", "", resp.content).strip()
     try:
         result = json.loads(raw)
@@ -260,10 +264,13 @@ _PARSE_SYSTEM = f"""\
 
 async def parse_input_node(state: WebState) -> dict:
     user_input = state["user_input"]
-    resp = await _llm(max_tokens=128).ainvoke([
-        SystemMessage(content=_PARSE_SYSTEM),
-        HumanMessage(content=user_input),
-    ])
+    resp = await _llm(max_tokens=128).ainvoke(
+        [
+            SystemMessage(content=_PARSE_SYSTEM),
+            HumanMessage(content=user_input),
+        ],
+        config={"tags": [TAG_NOSTREAM]},
+    )
     raw = re.sub(r"```(?:json)?\s*|\s*```", "", resp.content).strip()
     try:
         parsed = json.loads(raw)
@@ -320,10 +327,13 @@ async def web_planner_node(state: WebState) -> dict:
         f"时间范围：{state['start_year']} → {state['end_year']}\n"
         f"用户需求：{state['user_input']}"
     )
-    resp = await _llm(max_tokens=512).ainvoke([
-        SystemMessage(content=_PLANNER_SYSTEM),
-        HumanMessage(content=context),
-    ])
+    resp = await _llm(max_tokens=512).ainvoke(
+        [
+            SystemMessage(content=_PLANNER_SYSTEM),
+            HumanMessage(content=context),
+        ],
+        config={"tags": [TAG_NOSTREAM]},
+    )
     raw = re.sub(r"```(?:json)?\s*|\s*```", "", resp.content).strip()
     try:
         items = json.loads(raw)
@@ -458,10 +468,13 @@ async def web_human_approval_node(state: WebState) -> dict:
         },
         ensure_ascii=False,
     )
-    resp = await _llm(max_tokens=768).ainvoke([
-        SystemMessage(content=_PLAN_EDIT_SYSTEM),
-        HumanMessage(content=edit_context),
-    ])
+    resp = await _llm(max_tokens=768).ainvoke(
+        [
+            SystemMessage(content=_PLAN_EDIT_SYSTEM),
+            HumanMessage(content=edit_context),
+        ],
+        config={"tags": [TAG_NOSTREAM]},
+    )
     raw = re.sub(r"```(?:json)?\s*|\s*```", "", resp.content).strip()
     try:
         new_plan = _normalize_plan_items(json.loads(raw))
@@ -522,6 +535,7 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
     start_year = state["start_year"]
     end_year = state["end_year"]
     topic = task["topic"]
+    execution_id = f"{task['id']}:{uuid4().hex}"
 
     query = (
         f"研究任务：{topic}\n"
@@ -534,25 +548,46 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
     agent = _make_researcher()
     findings = ""
     progress_msgs = []
+    progress_events = []
     search_groups = []
     tool_results = []
+    terminal_status = "completed"
     # 实时进度写回流（前端 onCustomEvent 接住）。非流式环境下 writer 是 no-op。
     try:
         writer = get_stream_writer()
     except Exception:
         writer = None
 
-    def _emit(stage: str, detail: str) -> None:
+    def _emit(
+        stage: str,
+        detail: str,
+        *,
+        content: str = "",
+        status: str = "running",
+    ) -> None:
+        event_payload = {
+            "sequence": len(progress_events) + 1,
+            "stage": stage,
+            "detail": detail,
+            "content": content,
+            "status": status,
+        }
+        progress_events.append(event_payload)
         if writer is None:
             return
         try:
             writer({
                 "type": "research_progress",
+                "execution_id": execution_id,
                 "task_id": task["id"],
                 "topic": topic,
                 "stage": stage,
                 "detail": detail,
-                "round": len(progress_msgs) + 1,
+                "content": content,
+                "status": status,
+                "sequence": event_payload["sequence"],
+                # 兼容旧前端；新逻辑使用 sequence。
+                "round": event_payload["sequence"],
             })
         except Exception:
             pass  # 进度事件失败不影响研究流程
@@ -595,7 +630,10 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
     try:
         async for event in agent.astream_events(
             {"messages": [HM(content=query)]},
-            config={"recursion_limit": 80},
+            config={
+                "recursion_limit": 80,
+                "tags": [TAG_NOSTREAM],
+            },
             version="v2",
         ):
             kind = event["event"]
@@ -638,7 +676,11 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
                                     start=1,
                                 )
                             )
-                            _emit("search_result", f"结果概览：\n{titles}")
+                            _emit(
+                                "search_result",
+                                "已生成搜索结果概览",
+                                content=titles,
+                            )
                     else:
                         progress_msgs.append("搜索完成")
                         _emit("search_done", "搜索完成")
@@ -651,7 +693,11 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
                             "tool": name,
                             "summary": result_preview,
                         })
-                        _emit("tool_result", f"{name} 已生成结果摘要")
+                        _emit(
+                            "tool_result",
+                            f"{name} 已生成结果摘要",
+                            content=result_preview,
+                        )
 
             elif kind == "on_chat_model_end":
                 msg = event.get("data", {}).get("output")
@@ -663,15 +709,38 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
     except Exception as e:
         logger.error("Researcher 执行失败 | %s: %s", task.get("id"), e)
         findings = f"[{topic}] 研究过程出错：{e}"
+        terminal_status = "failed"
 
-    # 完成：通知前端该 task 进度结束（卡片消息随之到达）
-    _emit("complete", f"研究完成（共 {len(progress_msgs)} 步）")
+    if terminal_status == "completed":
+        if findings:
+            _emit(
+                "finding",
+                "研究结论已生成",
+                status="finalizing",
+            )
+        # 先进入收尾态；前端收到同 execution_id 的持久化消息后再移除临时卡。
+        _emit(
+            "complete",
+            f"研究完成（共 {len(progress_msgs)} 步）",
+            status="finalizing",
+        )
+    else:
+        _emit(
+            "failed",
+            "研究过程执行失败",
+            content=str(findings),
+            status="failed",
+        )
 
     # 使用结构化 payload，避免把长 JSON 直接混排进 Markdown。
     task_number = task["id"].removeprefix("task_")
     card_payload = json.dumps(
         {
-            "version": 2,
+            "version": 3,
+            "execution_id": execution_id,
+            "task_id": task["id"],
+            "status": terminal_status,
+            "events": progress_events,
             "process": progress_msgs,
             "searches": search_groups,
             "tools": tool_results,
@@ -679,8 +748,9 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
         },
         ensure_ascii=False,
     )
+    result_label = "执行结果" if terminal_status == "completed" else "执行失败"
     card_content = (
-        f"【Agent {task_number} · {topic} 执行结果】\n"
+        f"【Agent {task_number} · {topic} {result_label}】\n"
         f"{card_payload}"
     )
 

@@ -24,6 +24,7 @@ import {
   FileText,
   ListChecks,
   Search,
+  XCircle,
 } from "lucide-react";
 /** 去除思考过程，只返回 </think> 之后的正文 */
 function stripThinkContent(text: string): string {
@@ -35,7 +36,8 @@ function stripThinkContent(text: string): string {
 
 /** 从卫星影像输出中提取 .jpg/.png 文件名 */
 function extractImageFiles(text: string): string[] {
-  const matches = text.match(/[\w一-鿿\-（）()]+_\d{4}\.(jpg|jpeg|png)/gi) ?? [];
+  const matches =
+    text.match(/[\w一-鿿\-（）()]+_\d{4}\.(jpg|jpeg|png)/gi) ?? [];
   return [...new Set(matches)];
 }
 
@@ -55,6 +57,16 @@ type AgentSearchGroup = {
 
 type AgentCardPayload = {
   version: number;
+  execution_id?: string;
+  task_id?: string;
+  status?: "completed" | "failed";
+  events: Array<{
+    sequence: number;
+    stage: string;
+    detail: string;
+    content?: string;
+    status: "running" | "finalizing" | "completed" | "failed";
+  }>;
   process: string[];
   searches: AgentSearchGroup[];
   tools: Array<{ tool: string; summary: string }>;
@@ -64,9 +76,20 @@ type AgentCardPayload = {
 function parseAgentCardPayload(content: string): AgentCardPayload {
   try {
     const parsed = JSON.parse(content) as Partial<AgentCardPayload>;
-    if (parsed.version === 2) {
+    if (parsed.version === 2 || parsed.version === 3) {
       return {
-        version: 2,
+        version: parsed.version,
+        execution_id:
+          typeof parsed.execution_id === "string"
+            ? parsed.execution_id
+            : undefined,
+        task_id:
+          typeof parsed.task_id === "string" ? parsed.task_id : undefined,
+        status:
+          parsed.status === "failed" || parsed.status === "completed"
+            ? parsed.status
+            : undefined,
+        events: Array.isArray(parsed.events) ? parsed.events : [],
         process: Array.isArray(parsed.process) ? parsed.process : [],
         searches: Array.isArray(parsed.searches) ? parsed.searches : [],
         tools: Array.isArray(parsed.tools) ? parsed.tools : [],
@@ -78,7 +101,9 @@ function parseAgentCardPayload(content: string): AgentCardPayload {
   }
 
   const process = [
-    ...content.matchAll(/•\s*(正在搜索：[^\n]+|正在分析卫星影像[.…]*|正在查询 POI 数据[^\n]*)/g),
+    ...content.matchAll(
+      /•\s*(正在搜索：[^\n]+|正在分析卫星影像[.…]*|正在查询 POI 数据[^\n]*)/g,
+    ),
   ].map((match) => match[1].trim());
   const markerIndexes = ["【研究结论", "根据已有证据"]
     .map((marker) => content.indexOf(marker))
@@ -88,6 +113,7 @@ function parseAgentCardPayload(content: string): AgentCardPayload {
 
   return {
     version: 1,
+    events: [],
     process: [...new Set(process)],
     searches: [],
     tools: [],
@@ -99,11 +125,40 @@ function parseAgentCardPayload(content: string): AgentCardPayload {
 }
 
 /** 可折叠的 Researcher 输出卡片 */
-function AgentOutputCard({ topic, status, content }: { topic: string; status: string; content: string }) {
-  const [open, setOpen] = useState(false);
-  const isComplete = status === "执行结果";
+function AgentOutputCard({
+  topic,
+  status,
+  content,
+}: {
+  topic: string;
+  status: string;
+  content: string;
+}) {
   const payload = parseAgentCardPayload(content);
+  const stream = useStreamContext();
+  const [legacyOpen, setLegacyOpen] = useState(false);
+  const open = payload.execution_id
+    ? (stream.agentCardOpen[payload.execution_id] ?? false)
+    : legacyOpen;
+  const toggleOpen = () => {
+    if (payload.execution_id) {
+      stream.toggleAgentCard(payload.execution_id);
+    } else {
+      setLegacyOpen((value) => !value);
+    }
+  };
+  const isFailed = payload.status === "failed" || status === "执行失败";
   const imageFiles = extractImageFiles(content);
+  const timelineEvents =
+    payload.events.length > 0
+      ? payload.events
+      : payload.process.map((detail, index) => ({
+          sequence: index + 1,
+          stage: "process",
+          detail,
+          content: undefined,
+          status: "completed" as const,
+        }));
   const sourceCount = payload.searches.reduce(
     (total, group) => total + group.results.length,
     0,
@@ -113,66 +168,91 @@ function AgentOutputCard({ topic, status, content }: { topic: string; status: st
     payload.process.filter((step) => step.startsWith("正在搜索：")).length;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border/50 bg-background text-sm shadow-sm">
+    <div className="border-border/50 bg-background overflow-hidden rounded-xl border text-sm shadow-sm">
       <button
         type="button"
         aria-expanded={open}
-        className="flex w-full items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-muted/35"
-        onClick={() => setOpen((v) => !v)}
+        className="hover:bg-muted/35 flex w-full items-center gap-2 px-4 py-3 text-left transition-colors"
+        onClick={toggleOpen}
       >
         {open ? (
-          <ChevronDown className="h-4 w-4 shrink-0 text-foreground/40" />
+          <ChevronDown className="text-foreground/40 h-4 w-4 shrink-0" />
         ) : (
-          <ChevronRight className="h-4 w-4 shrink-0 text-foreground/40" />
+          <ChevronRight className="text-foreground/40 h-4 w-4 shrink-0" />
         )}
-        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
-        <span className="min-w-0 flex-1 truncate font-medium text-foreground/75">
+        {isFailed ? (
+          <XCircle className="h-4 w-4 shrink-0 text-rose-500" />
+        ) : (
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+        )}
+        <span className="text-foreground/75 min-w-0 flex-1 truncate font-medium">
           {topic}
         </span>
-        <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
-          {isComplete ? "已完成" : "运行中"}
+        <span
+          className={cn(
+            "shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
+            isFailed
+              ? "bg-rose-50 text-rose-700"
+              : "bg-emerald-50 text-emerald-700",
+          )}
+        >
+          {isFailed ? "执行失败" : "已完成"}
         </span>
       </button>
 
       {open && (
-        <div className="flex flex-col gap-5 border-t border-border/40 bg-muted/10 px-4 py-4">
+        <div className="border-border/40 bg-muted/10 flex flex-col gap-5 border-t px-4 py-4">
           <div className="grid grid-cols-3 gap-2">
-            <div className="rounded-lg border border-border/40 bg-background px-3 py-2">
-              <p className="text-[11px] text-foreground/45">执行步骤</p>
-              <p className="mt-0.5 text-base font-semibold text-foreground/75">
+            <div className="border-border/40 bg-background rounded-lg border px-3 py-2">
+              <p className="text-foreground/45 text-[11px]">执行步骤</p>
+              <p className="text-foreground/75 mt-0.5 text-base font-semibold">
                 {payload.process.length}
               </p>
             </div>
-            <div className="rounded-lg border border-border/40 bg-background px-3 py-2">
-              <p className="text-[11px] text-foreground/45">检索任务</p>
-              <p className="mt-0.5 text-base font-semibold text-foreground/75">
+            <div className="border-border/40 bg-background rounded-lg border px-3 py-2">
+              <p className="text-foreground/45 text-[11px]">检索任务</p>
+              <p className="text-foreground/75 mt-0.5 text-base font-semibold">
                 {searchTaskCount}
               </p>
             </div>
-            <div className="rounded-lg border border-border/40 bg-background px-3 py-2">
-              <p className="text-[11px] text-foreground/45">有效来源</p>
-              <p className="mt-0.5 text-base font-semibold text-foreground/75">
+            <div className="border-border/40 bg-background rounded-lg border px-3 py-2">
+              <p className="text-foreground/45 text-[11px]">有效来源</p>
+              <p className="text-foreground/75 mt-0.5 text-base font-semibold">
                 {payload.version === 1 ? "—" : sourceCount}
               </p>
             </div>
           </div>
 
-          {payload.process.length > 0 && (
+          {timelineEvents.length > 0 && (
             <section>
-              <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-foreground/55">
+              <div className="text-foreground/55 mb-2 flex items-center gap-2 text-xs font-semibold">
                 <ListChecks className="h-4 w-4" />
                 执行过程
               </div>
-              <div className="ml-1 border-l border-border/60 pl-4">
-                {payload.process.map((step, index) => (
+              <div className="border-border/60 ml-1 border-l pl-4">
+                {timelineEvents.map((event, index) => (
                   <div
-                    key={`${step}-${index}`}
+                    key={`${event.sequence}-${event.stage}-${index}`}
                     className="relative pb-3 last:pb-0"
                   >
-                    <span className="absolute -left-[19px] top-1.5 h-2 w-2 rounded-full border-2 border-background bg-emerald-500 ring-1 ring-border" />
-                    <p className="whitespace-pre-wrap text-xs leading-5 text-foreground/65">
-                      {step}
+                    <span
+                      className={cn(
+                        "border-background ring-border absolute top-1.5 -left-[19px] h-2 w-2 rounded-full border-2 ring-1",
+                        event.status === "failed"
+                          ? "bg-rose-500"
+                          : "bg-emerald-500",
+                      )}
+                    />
+                    <p className="text-foreground/65 text-xs leading-5 whitespace-pre-wrap">
+                      {event.detail}
                     </p>
+                    {event.content &&
+                      event.stage !== "finding" &&
+                      event.content.trim() !== event.detail.trim() && (
+                        <pre className="bg-muted/40 text-foreground/55 mt-1.5 max-h-52 overflow-auto rounded-md px-2.5 py-2 text-[11px] leading-5 whitespace-pre-wrap">
+                          {event.content}
+                        </pre>
+                      )}
                   </div>
                 ))}
               </div>
@@ -181,7 +261,7 @@ function AgentOutputCard({ topic, status, content }: { topic: string; status: st
 
           {payload.searches.length > 0 && (
             <section>
-              <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-foreground/55">
+              <div className="text-foreground/55 mb-2 flex items-center gap-2 text-xs font-semibold">
                 <Search className="h-4 w-4" />
                 检索结果
               </div>
@@ -189,28 +269,28 @@ function AgentOutputCard({ topic, status, content }: { topic: string; status: st
                 {payload.searches.map((group, index) => (
                   <details
                     key={`${group.query}-${index}`}
-                    className="group rounded-lg border border-border/40 bg-background"
+                    className="group border-border/40 bg-background rounded-lg border"
                   >
                     <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2.5">
-                      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-foreground/35 transition-transform group-open:rotate-90" />
-                      <span className="min-w-0 flex-1 truncate text-xs font-medium text-foreground/70">
+                      <ChevronRight className="text-foreground/35 h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-90" />
+                      <span className="text-foreground/70 min-w-0 flex-1 truncate text-xs font-medium">
                         {group.query || `检索任务 ${index + 1}`}
                       </span>
-                      <span className="shrink-0 text-[11px] text-foreground/40">
+                      <span className="text-foreground/40 shrink-0 text-[11px]">
                         {group.results.length} 条
                       </span>
                     </summary>
-                    <div className="flex flex-col gap-2 border-t border-border/30 px-3 py-3">
+                    <div className="border-border/30 flex flex-col gap-2 border-t px-3 py-3">
                       {group.error && (
                         <p className="text-xs text-rose-600">{group.error}</p>
                       )}
                       {group.results.map((result, resultIndex) => (
                         <div
                           key={`${result.url}-${resultIndex}`}
-                          className="rounded-md bg-muted/35 px-3 py-2"
+                          className="bg-muted/35 rounded-md px-3 py-2"
                         >
                           <div className="flex items-start gap-2">
-                            <span className="mt-0.5 shrink-0 text-[11px] font-medium text-foreground/35">
+                            <span className="text-foreground/35 mt-0.5 shrink-0 text-[11px] font-medium">
                               {resultIndex + 1}
                             </span>
                             <div className="min-w-0 flex-1">
@@ -225,17 +305,17 @@ function AgentOutputCard({ topic, status, content }: { topic: string; status: st
                                   <ExternalLink className="mt-0.5 h-3 w-3 shrink-0" />
                                 </a>
                               ) : (
-                                <p className="text-xs font-medium text-foreground/70">
+                                <p className="text-foreground/70 text-xs font-medium">
                                   {result.title || "未命名结果"}
                                 </p>
                               )}
                               {result.source_label && (
-                                <span className="mt-1 inline-block rounded bg-background px-1.5 py-0.5 text-[10px] text-foreground/45">
+                                <span className="bg-background text-foreground/45 mt-1 inline-block rounded px-1.5 py-0.5 text-[10px]">
                                   {result.source_label}
                                 </span>
                               )}
                               {result.snippet && (
-                                <p className="mt-1.5 line-clamp-3 text-[11px] leading-5 text-foreground/55">
+                                <p className="text-foreground/55 mt-1.5 line-clamp-3 text-[11px] leading-5">
                                   {result.snippet}
                                 </p>
                               )}
@@ -252,7 +332,7 @@ function AgentOutputCard({ topic, status, content }: { topic: string; status: st
 
           {payload.tools.length > 0 && (
             <section>
-              <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-foreground/55">
+              <div className="text-foreground/55 mb-2 flex items-center gap-2 text-xs font-semibold">
                 <FileText className="h-4 w-4" />
                 工具结果
               </div>
@@ -260,12 +340,12 @@ function AgentOutputCard({ topic, status, content }: { topic: string; status: st
                 {payload.tools.map((tool, index) => (
                   <details
                     key={`${tool.tool}-${index}`}
-                    className="rounded-lg border border-border/40 bg-background"
+                    className="border-border/40 bg-background rounded-lg border"
                   >
-                    <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-foreground/65">
+                    <summary className="text-foreground/65 cursor-pointer px-3 py-2 text-xs font-medium">
                       {tool.tool}
                     </summary>
-                    <pre className="overflow-x-auto whitespace-pre-wrap border-t border-border/30 px-3 py-2 text-[11px] leading-5 text-foreground/55">
+                    <pre className="border-border/30 text-foreground/55 overflow-x-auto border-t px-3 py-2 text-[11px] leading-5 whitespace-pre-wrap">
                       {tool.summary}
                     </pre>
                   </details>
@@ -276,7 +356,7 @@ function AgentOutputCard({ topic, status, content }: { topic: string; status: st
 
           {imageFiles.length > 0 && (
             <section>
-              <div className="mb-2 text-xs font-semibold text-foreground/55">
+              <div className="text-foreground/55 mb-2 text-xs font-semibold">
                 影像与附件
               </div>
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
@@ -293,7 +373,7 @@ function AgentOutputCard({ topic, status, content }: { topic: string; status: st
                       alt={file}
                       className="aspect-square w-full rounded-md object-cover transition-opacity group-hover:opacity-80"
                     />
-                    <span className="absolute bottom-0 left-0 right-0 truncate rounded-b-md bg-black/55 px-1 py-0.5 text-center text-[10px] text-white">
+                    <span className="absolute right-0 bottom-0 left-0 truncate rounded-b-md bg-black/55 px-1 py-0.5 text-center text-[10px] text-white">
                       {file.match(/_(\d{4})\./)?.[1] ?? file}
                     </span>
                   </a>
@@ -303,11 +383,11 @@ function AgentOutputCard({ topic, status, content }: { topic: string; status: st
           )}
 
           <section>
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-foreground/55">
+            <div className="text-foreground/55 mb-2 flex items-center gap-2 text-xs font-semibold">
               <FileText className="h-4 w-4" />
               研究结论
             </div>
-            <div className="rounded-lg border border-border/40 bg-background px-4 py-3 text-foreground/70">
+            <div className="border-border/40 bg-background text-foreground/70 rounded-lg border px-4 py-3">
               <MarkdownText>{payload.findings}</MarkdownText>
             </div>
           </section>
@@ -399,32 +479,53 @@ function Interrupt({
   );
 }
 
-export function AssistantMessage({
-  message,
-  isLoading,
-  handleRegenerate,
-}: {
+type AssistantMessageProps = {
   message: Message | undefined;
   isLoading: boolean;
   handleRegenerate: (parentCheckpoint: Checkpoint | null | undefined) => void;
-}) {
-  const msgName = (message as Record<string, unknown> | undefined)?.name as string | undefined;
+};
+
+function InternalAssistantMessage({
+  message,
+}: Pick<AssistantMessageProps, "message">) {
+  const contentString = getContentString(message?.content ?? []);
+  const prefixMatch = contentString.match(
+    /^【(.+?) (执行结果|研究进度|执行失败)】\n([\s\S]*)$/,
+  );
+  const topic = prefixMatch?.[1] ?? "研究员";
+  const status = prefixMatch?.[2] ?? "执行结果";
+  const agentContent = stripThinkContent(
+    prefixMatch?.[3] ?? contentString,
+  ).trim();
+
+  return (
+    <div className="mr-auto w-full">
+      <AgentOutputCard
+        topic={topic}
+        status={status}
+        content={agentContent}
+      />
+    </div>
+  );
+}
+
+export function AssistantMessage(props: AssistantMessageProps) {
+  const msgName = (props.message as Record<string, unknown> | undefined)
+    ?.name as string | undefined;
+  if (msgName === "internal") {
+    return <InternalAssistantMessage message={props.message} />;
+  }
+  return <RegularAssistantMessage {...props} />;
+}
+
+function RegularAssistantMessage({
+  message,
+  isLoading,
+  handleRegenerate,
+}: AssistantMessageProps) {
   const content = message?.content ?? [];
   const contentString = getContentString(content);
   const mainContent = stripThinkContent(contentString);
-
-  // Researcher 输出：折叠卡片
-  if (msgName === "internal") {
-    const prefixMatch = contentString.match(/^【(.+?) (执行结果|研究进度)】\n([\s\S]*)$/);
-    const topic = prefixMatch?.[1] ?? "研究员";
-    const status = prefixMatch?.[2] ?? "执行结果";
-    const agentContent = stripThinkContent(prefixMatch?.[3] ?? contentString).trim();
-    return (
-      <div className="mr-auto w-full">
-        <AgentOutputCard topic={topic} status={status} content={agentContent} />
-      </div>
-    );
-  }
   const [hideToolCalls] = useQueryState(
     "hideToolCalls",
     parseAsBoolean.withDefault(false),
