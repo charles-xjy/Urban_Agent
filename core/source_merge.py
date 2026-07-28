@@ -36,8 +36,12 @@ class MergedReport:
 
 # ── 正则 ────────────────────────────────────────────────────────────────────
 
-# ## 来源 区段起始行：兼容 "## 来源" / "##来源" / "## 来源：" / 尾随空白，但不匹配 "## 来源分析"
-_SOURCE_HEADING_RE = re.compile(r"^#{1,6}\s*来源\s*:?\s*$", re.MULTILINE)
+# 来源区段起始行：兼容 Markdown 标题、旧版方头括号标题和纯文本标题，
+# 但不匹配正文中的“来源分析”等普通短语。
+_SOURCE_HEADING_RE = re.compile(
+    r"^(?:#{1,6}\s*来源\s*[:：]?\s*|【\s*来源\s*】\s*|来源\s*[:：]?\s*)$",
+    re.MULTILINE,
+)
 # 来源区段结束：下一个 ## 标题
 _NEXT_HEADING_RE = re.compile(r"^#{1,6}\s+\S", re.MULTILINE)
 # [n] 编号标记
@@ -88,21 +92,27 @@ def _parse_sources(sources_text: str) -> list[Source]:
         if not chunk:
             continue
         m_num = _NUM_TAG_RE.search(chunk)
-        url_m = _URL_RE.search(chunk)
-        if not m_num or not url_m:
+        if not m_num:
             continue
         num = int(m_num.group(1))
-        url = url_m.group(0).rstrip(".,;，。；)]")
         after_num = chunk[m_num.end():]
-        url_pos = after_num.find(url)
+        url_m = _URL_RE.search(after_num)
+        url = url_m.group(0).rstrip(".,;，。；)]") if url_m else ""
+        url_pos = after_num.find(url) if url else -1
         title = after_num[:url_pos] if url_pos != -1 else after_num
         title = title.strip(" \t\n\r-–—•·*、:")
+        if not title and not url:
+            continue
         sources.append(Source(num=num, title=title, url=url))
     return sources
 
 
 def _format_source(num: int, title: str, url: str) -> str:
-    return f"- [{num}] {title} - {url}" if title else f"- [{num}] {url}"
+    if title and url:
+        return f"- [{num}] {title} - {url}"
+    if title:
+        return f"- [{num}] {title}"
+    return f"- [{num}] {url}"
 
 
 # ── 公开接口 ──────────────────────────────────────────────────────────────────
@@ -126,7 +136,11 @@ def _renumber_search_report(text: str, offset: int = 0) -> tuple[str, int]:
     ordered: list[tuple[int, str, str]] = []   # (new_num, title, url)
     orig_to_new: dict[int, int] = {}
     for s in sources:
-        key = _normalize_url(s.url)
+        key = (
+            f"url:{_normalize_url(s.url)}"
+            if s.url
+            else f"title:{s.title.strip().casefold()}"
+        )
         if key not in url_to_new:
             new_num = offset + len(ordered) + 1
             url_to_new[key] = new_num
@@ -197,11 +211,25 @@ def replace_report_sources(
     sources: list[tuple[int, str, str]],
 ) -> str:
     """
-    用统一来源替换模型自行生成的来源区段，并只保留正文实际引用的编号。
+    用统一来源替换模型自行生成的来源区段，只保留正文实际引用的来源，
+    并把保留下来的编号压缩为从 1 开始的连续序列。
 
     这能避免模型遗漏、重排或混用不同 researcher 的来源，同时减少最终列表
-    中正文从未引用的条目。
+    中正文从未引用的条目。正文里的 [n] 会与来源列表同步改号。
     """
+    if not sources:
+        # 若 researcher 没提供可用的统一来源，尝试规范化 reporter 自带的
+        # 来源区段；仍然只保留正文实际引用项，并保证最终编号连续。
+        normalized, source_count = _renumber_search_report(report or "", offset=0)
+        if source_count:
+            _, sources_text = _split_source_section(normalized)
+            fallback_sources = [
+                (source.num, source.title, source.url)
+                for source in _parse_sources(sources_text or "")
+            ]
+            return replace_report_sources(normalized, fallback_sources)
+        return (report or "").strip()
+
     body, _ = _split_source_section(report or "")
     cited = {int(num) for num in _NUM_TAG_RE.findall(body)}
     selected = [
@@ -213,10 +241,22 @@ def replace_report_sources(
     if not selected:
         return body.strip()
 
+    old_to_new = {
+        old_num: new_num
+        for new_num, (old_num, _, _) in enumerate(selected, start=1)
+    }
+
+    def _repl(m: re.Match) -> str:
+        old_num = int(m.group(1))
+        new_num = old_to_new.get(old_num)
+        return f"[{new_num}]" if new_num is not None else m.group(0)
+
+    body = _NUM_TAG_RE.sub(_repl, body)
+
     lines = ["## 来源", ""]
     lines.extend(
-        _format_source(num, title, url)
-        for num, title, url in selected
+        _format_source(new_num, title, url)
+        for new_num, (_, title, url) in enumerate(selected, start=1)
     )
     sources_md = "\n".join(lines)
     return f"{body.rstrip()}\n\n{sources_md}"

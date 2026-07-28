@@ -140,7 +140,97 @@ def test_mixed_list_and_plain_text_sources():
     assert src[1][1] == "https://example.com/a"
 
 
-# ── 6. 多条来源挤在一行 -> 仍能正确切分 ─────────────────────────────────────
+# ── 6. 兼容旧版【来源】标题 ──────────────────────────────────────────────────
+
+def test_legacy_bracketed_source_heading():
+    f = (
+        "建设变化[1]，生态变化[2]。\n\n"
+        "【来源】\n\n"
+        "- [1] 建设来源 - https://example.com/a\n"
+        "- [2] 生态来源 - https://example.com/b"
+    )
+    renumbered, n = _renumber_search_report(f, offset=3)
+    assert n == 2
+    assert "建设变化[4]" in renumbered
+    assert "生态变化[5]" in renumbered
+    src = _sources_as_dict(renumbered)
+    assert sorted(src) == [4, 5]
+
+
+# ── 7. 3 条来源 + 6 条来源 -> 最终连续编号 1..9 ───────────────────────────────
+
+def test_three_plus_six_sources_are_continuous():
+    def report(label, count, heading):
+        body = "，".join(f"{label}结论{i}[{i}]" for i in range(1, count + 1))
+        sources = "\n".join(
+            f"- [{i}] {label}来源{i} - https://example.com/{label}/{i}"
+            for i in range(1, count + 1)
+        )
+        return f"{body}。\n\n{heading}\n\n{sources}"
+
+    merged = merge_findings_with_sources([
+        report("a", 3, "【来源】"),
+        report("b", 6, "## 来源"),
+    ])
+    src = _sources_as_dict(merged.sources_md)
+
+    assert sorted(src) == list(range(1, 10))
+    assert "a结论3[3]" in merged.body
+    assert "b结论1[4]" in merged.body
+    assert "b结论6[9]" in merged.body
+
+
+# ── 8. 最终报告只保留引用项，并再次压缩为连续编号 ─────────────────────────────
+
+def test_three_plus_six_then_keep_only_final_citations():
+    first_sources = "\n".join(
+        f"- [{i}] 第一组来源{i} - https://example.com/a/{i}"
+        for i in range(1, 4)
+    )
+    second_sources = "\n".join(
+        f"- [{i}] 第二组来源{i} - https://example.com/b/{i}"
+        for i in range(1, 7)
+    )
+    merged = merge_findings_with_sources([
+        f"第一组结论[1][2][3]。\n\n## 来源\n\n{first_sources}",
+        f"第二组结论[1][2][3][4][5][6]。\n\n## 来源\n\n{second_sources}",
+    ])
+
+    finalized = replace_report_sources(
+        "最终只采用三条证据：第一条[2]、第二条[4]、第三条[9]。",
+        merged.sources,
+    )
+    src = _sources_as_dict(finalized)
+
+    assert sorted(src) == [1, 2, 3]
+    assert "第一条[1]" in finalized
+    assert "第二条[2]" in finalized
+    assert "第三条[3]" in finalized
+    assert src[1][1] == "https://example.com/a/2"
+    assert src[2][1] == "https://example.com/b/1"
+    assert src[3][1] == "https://example.com/b/6"
+
+
+# ── 9. 无 URL 的来源也占用自己的编号，不导致后续编号碰撞 ──────────────────────
+
+def test_title_only_source_preserves_number_sequence():
+    f = (
+        "网页证据[1]，OSM 数据[2]，政策证据[3]。\n\n"
+        "## 来源\n\n"
+        "- [1] 网页来源 - https://example.com/a\n"
+        "- [2] OpenStreetMap 历史 POI 数据\n"
+        "- [3] 政策来源 - https://example.com/c"
+    )
+    renumbered, n = _renumber_search_report(f, offset=0)
+    src = _sources_as_dict(renumbered)
+
+    assert n == 3
+    assert sorted(src) == [1, 2, 3]
+    assert src[2] == ("OpenStreetMap 历史 POI 数据", "")
+    assert "政策证据[3]" in renumbered
+
+
+# ── 10. 多条来源挤在一行 -> 仍能正确切分 ────────────────────────────────────
 
 def test_packed_sources_on_one_line():
     f = (
@@ -156,7 +246,7 @@ def test_packed_sources_on_one_line():
     assert src[2][1] == "https://example.com/b"
 
 
-# ── 7. 无 ## 来源 区段 -> 原样返回，不报错 ────────────────────────────────────
+# ── 11. 无 ## 来源 区段 -> 原样返回，不报错 ───────────────────────────────────
 
 def test_no_source_section_passes_through():
     f = "只是普通研究笔记，没有来源区段，正文有个 [1] 也不应被改动。"
@@ -170,7 +260,7 @@ def test_no_source_section_passes_through():
     assert not has_source_section(merged.sources_md) or merged.sources_md == "## 来源\n"
 
 
-# ── 8. URL 归一化去重（尾斜杠/大小写）────────────────────────────────────────
+# ── 12. URL 归一化去重（尾斜杠/大小写）───────────────────────────────────────
 
 def test_url_normalization_dedup():
     # 仅 host 大小写 / 尾斜杠不同，视为同一来源（路径大小写保持敏感）
@@ -185,7 +275,7 @@ def test_url_normalization_dedup():
     assert "结论[1][1]" in renumbered, renumbered
 
 
-# ── 9. 最终报告来源强制使用统一列表，且只保留正文引用项 ─────────────────────
+# ── 13. 最终报告来源强制使用统一列表，且只保留正文引用项 ─────────────────────
 
 def test_replace_report_sources_uses_only_cited_canonical_sources():
     report = (
@@ -202,10 +292,30 @@ def test_replace_report_sources_uses_only_cited_canonical_sources():
     finalized = replace_report_sources(report, canonical)
     sources = _sources_as_dict(finalized)
 
-    assert sorted(sources) == [1, 3]
+    assert sorted(sources) == [1, 2]
     assert sources[1][1] == "https://example.com/a"
-    assert sources[3][1] == "https://example.com/c"
+    assert sources[2][1] == "https://example.com/c"
+    assert "人口变化结论[2]" in finalized
+    assert "人口变化结论[3]" not in finalized
     assert "wrong.example.com" not in finalized
+    assert "未引用来源" not in finalized
+
+
+def test_replace_report_sources_normalizes_report_fallback_sources():
+    report = (
+        "结论A[2]，结论B[4]。\n\n"
+        "【来源】\n\n"
+        "- [1] 未引用来源 - https://example.com/a\n"
+        "- [2] 已引用来源B - https://example.com/b\n"
+        "- [4] 已引用来源D - https://example.com/d"
+    )
+
+    finalized = replace_report_sources(report, [])
+    sources = _sources_as_dict(finalized)
+
+    assert sorted(sources) == [1, 2]
+    assert "结论A[1]" in finalized
+    assert "结论B[2]" in finalized
     assert "未引用来源" not in finalized
 
 

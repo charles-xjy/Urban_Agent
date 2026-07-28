@@ -258,7 +258,7 @@ function splitSourceList(markdown: string): {
   sources: SourceDisplayEntry[];
 } {
   const sourceHeading =
-    /(^|\n)[ \t]*(?:#{1,6}[ \t]+)?来源[ \t]*(?:\n|(?=(?:[-*][ \t]*)?\[\d+\]))/gm;
+    /(^|\n)[ \t]*(?:(?:#{1,6}[ \t]+)?来源[ \t]*[:：]?|【[ \t]*来源[ \t]*】)[ \t]*(?:\n|(?=(?:[-*][ \t]*)?\[\d+\]))/gm;
   let lastMatch: RegExpExecArray | null = null;
   let match: RegExpExecArray | null;
 
@@ -317,16 +317,16 @@ const MarkdownTextImpl: FC<{ children: string }> = ({ children }) => {
           <h2 className="mb-4 scroll-m-20 text-3xl font-semibold tracking-tight">
             来源
           </h2>
-          <div className="divide-y divide-border/50 rounded-lg border border-border/50 bg-muted/10 px-4">
+          <div className="divide-border/50 border-border/50 bg-muted/10 divide-y rounded-lg border px-4">
             {sources.map((source, index) => (
               <div
                 key={`${source.number}-${source.url}-${index}`}
                 className="flex items-start gap-2 py-3 text-sm leading-6"
               >
-                <span className="shrink-0 font-medium text-foreground/50">
+                <span className="text-foreground/50 shrink-0 font-medium">
                   [{source.number}]
                 </span>
-                <p className="min-w-0 flex-1 text-foreground/70">
+                <p className="text-foreground/70 min-w-0 flex-1">
                   {source.title && <span>{source.title}</span>}
                   {source.title && source.url && (
                     <span className="text-foreground/30"> — </span>
@@ -336,7 +336,7 @@ const MarkdownTextImpl: FC<{ children: string }> = ({ children }) => {
                       href={source.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="break-all font-medium text-primary underline underline-offset-4"
+                      className="text-primary font-medium break-all underline underline-offset-4"
                     >
                       {source.url}
                     </a>
