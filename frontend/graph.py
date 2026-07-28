@@ -789,7 +789,13 @@ async def web_reporter_node(state: WebState) -> dict:
     # 合并多份研究笔记：按 URL 去重 + 跨 finding 连续编号 + 同步替换正文 [n]
     merged = merge_findings_with_sources(findings)
 
-    resp = await _llm(max_tokens=8192).ainvoke([
+    try:
+        writer = get_stream_writer()
+    except Exception:
+        writer = None
+
+    report = ""
+    async for chunk in _llm(max_tokens=8192).astream([
         SystemMessage(content=_REPORTER_SYSTEM),
         HumanMessage(content=(
             f"分析对象：{state['location']}\n"
@@ -798,11 +804,25 @@ async def web_reporter_node(state: WebState) -> dict:
             f"统一来源列表（正文 [n] 必须对应这里的编号）：\n{merged.sources_md}\n\n"
             "请撰写城市变化分析报告，正文用 [n] 引用来源，报告结尾输出 ## 来源 区段。"
         )),
-    ])
-    report = resp.content
+    ]):
+        delta = chunk.content or ""
+        if not delta:
+            continue
+        report += delta
+        if writer is not None:
+            try:
+                writer({"type": "report_chunk", "delta": delta})
+            except Exception:
+                pass
 
     # 始终使用统一来源，并仅保留正文实际引用的编号。
     report = replace_report_sources(report, merged.sources)
+
+    if writer is not None:
+        try:
+            writer({"type": "report_done"})
+        except Exception:
+            pass
 
     return {
         "report": report,

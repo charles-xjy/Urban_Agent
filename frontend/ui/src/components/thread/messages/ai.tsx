@@ -576,11 +576,17 @@ function RegularAssistantMessage({
           </>
         ) : (
           <>
-            {mainContent.length > 0 && (
-              <div className="py-1">
-                <MarkdownText>{mainContent}</MarkdownText>
-              </div>
-            )}
+            {(() => {
+              const renderText =
+                isLastMessage && thread.streamingReport.length > 0 && isLoading
+                  ? thread.streamingReport
+                  : mainContent;
+              return renderText.length > 0 ? (
+                <div className="py-1">
+                  <MarkdownText>{renderText}</MarkdownText>
+                </div>
+              ) : null;
+            })()}
 
             {!hideToolCalls && (
               <>

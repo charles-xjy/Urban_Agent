@@ -51,6 +51,15 @@ export type ResearchProgressEvent = {
   round: number;
 };
 
+export type ReportChunkEvent = {
+  type: "report_chunk";
+  delta: string;
+};
+
+export type ReportDoneEvent = {
+  type: "report_done";
+};
+
 export type AgentExecutionStatus =
   | "running"
   | "finalizing"
@@ -90,12 +99,13 @@ const useTypedStream = useStream<
       ui?: (UIMessage | RemoveUIMessage)[] | UIMessage | RemoveUIMessage;
       context?: Record<string, unknown>;
     };
-    CustomEventType: UIMessage | RemoveUIMessage | ResearchProgressEvent;
+    CustomEventType: UIMessage | RemoveUIMessage | ResearchProgressEvent | ReportChunkEvent | ReportDoneEvent;
   }
 >;
 
 type StreamContextType = ReturnType<typeof useTypedStream> & {
   researchProgress: Record<string, ResearchProgressItem>;
+  streamingReport: string;
   agentCardOpen: Record<string, boolean>;
   toggleAgentCard: (executionId: string) => void;
 };
@@ -177,6 +187,35 @@ const StreamSession = ({
       [executionId]: !prev[executionId],
     }));
   }, []);
+
+  const [streamingReport, setStreamingReport] = useState("");
+  const reportBufRef = useRef("");
+  const reportRafRef = useRef<number | null>(null);
+
+  const flushReport = useCallback(() => {
+    reportRafRef.current = null;
+    setStreamingReport(reportBufRef.current);
+  }, []);
+
+  const appendReportDelta = useCallback((delta: string) => {
+    reportBufRef.current += delta;
+    if (reportRafRef.current === null) {
+      reportRafRef.current = requestAnimationFrame(flushReport);
+    }
+  }, [flushReport]);
+
+  const resetReport = useCallback(() => {
+    reportBufRef.current = "";
+    if (reportRafRef.current !== null) {
+      cancelAnimationFrame(reportRafRef.current);
+      reportRafRef.current = null;
+    }
+    setStreamingReport("");
+  }, []);
+
+  useEffect(() => () => {
+    if (reportRafRef.current !== null) cancelAnimationFrame(reportRafRef.current);
+  }, []);
   const streamValue = useTypedStream({
     apiUrl,
     apiKey: apiKey ?? undefined,
@@ -252,6 +291,21 @@ const StreamSession = ({
           };
         });
       }
+      if (
+        event &&
+        typeof event === "object" &&
+        (event as ReportChunkEvent).type === "report_chunk"
+      ) {
+        appendReportDelta((event as ReportChunkEvent).delta);
+        return;
+      }
+      if (
+        event &&
+        typeof event === "object" &&
+        (event as ReportDoneEvent).type === "report_done"
+      ) {
+        resetReport();
+      }
     },
     onThreadId: (id) => {
       onThreadCreated();
@@ -299,7 +353,7 @@ const StreamSession = ({
   // toolProgress, and incorrectly add the unsupported "tools" mode.
   const contextValue = Object.assign(
     Object.create(streamValue) as ReturnType<typeof useTypedStream>,
-    { researchProgress, agentCardOpen, toggleAgentCard },
+    { researchProgress, streamingReport, agentCardOpen, toggleAgentCard },
   );
 
   return (
