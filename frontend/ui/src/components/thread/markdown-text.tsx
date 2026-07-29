@@ -249,6 +249,33 @@ type SourceDisplayEntry = {
   url: string;
 };
 
+function getSourceHref(source: SourceDisplayEntry): {
+  href: string;
+  isSearchFallback: boolean;
+} {
+  if (source.url) {
+    return { href: source.url, isSearchFallback: false };
+  }
+
+  // 兼容旧报告中只写了裸域名、没有 http(s):// 的来源。
+  const domainMatch = source.title.match(
+    /(?:^|[\s（(])((?:[\w-]+\.)+[a-z]{2,}(?:\/[^\s）)]*)?)/i,
+  );
+  if (domainMatch?.[1]) {
+    return {
+      href: `https://${domainMatch[1].replace(/[.,;，。；]+$/, "")}`,
+      isSearchFallback: false,
+    };
+  }
+
+  // 历史消息无法重新取得当时的原始 URL 时，至少让来源不再是死文本。
+  // 新报告会由服务端从原始检索结果回填直链，通常不会走到这里。
+  return {
+    href: `https://www.bing.com/search?q=${encodeURIComponent(source.title)}`,
+    isSearchFallback: true,
+  };
+}
+
 /**
  * 把来源区段从 Markdown 正文中拆出，交给专用行组件渲染。
  * 这样不会生成 ul/ol 的 marker，序号、标题和链接也能保持在同一行。
@@ -318,32 +345,34 @@ const MarkdownTextImpl: FC<{ children: string }> = ({ children }) => {
             来源
           </h2>
           <div className="divide-border/50 border-border/50 bg-muted/10 divide-y rounded-lg border px-4">
-            {sources.map((source, index) => (
-              <div
-                key={`${source.number}-${source.url}-${index}`}
-                className="flex items-start gap-2 py-3 text-sm leading-6"
-              >
-                <span className="text-foreground/50 shrink-0 font-medium">
-                  [{source.number}]
-                </span>
-                <p className="text-foreground/70 min-w-0 flex-1">
-                  {source.title && <span>{source.title}</span>}
-                  {source.title && source.url && (
-                    <span className="text-foreground/30"> — </span>
-                  )}
-                  {source.url && (
+            {sources.map((source, index) =>
+              (() => {
+                const { href, isSearchFallback } = getSourceHref(source);
+                return (
+                  <div
+                    key={`${source.number}-${source.url}-${index}`}
+                    className="flex items-start gap-2 py-3 text-sm leading-6"
+                  >
+                    <span className="text-foreground/50 shrink-0 font-medium">
+                      [{source.number}]
+                    </span>
                     <a
-                      href={source.url}
+                      href={href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-primary font-medium break-all underline underline-offset-4"
+                      title={
+                        isSearchFallback
+                          ? "搜索该来源（历史报告未保存原始链接）"
+                          : "打开来源"
+                      }
+                      className="text-primary min-w-0 flex-1 font-medium break-words underline underline-offset-4"
                     >
-                      {source.url}
+                      {source.title || source.url}
                     </a>
-                  )}
-                </p>
-              </div>
-            ))}
+                  </div>
+                );
+              })(),
+            )}
           </div>
         </section>
       )}

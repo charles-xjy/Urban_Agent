@@ -49,6 +49,7 @@ from core.intent import (  # noqa: E402
     normalize_router_type,
 )
 from core.source_merge import (  # noqa: E402
+    enrich_report_sources,
     merge_findings_with_sources,
     replace_report_sources,
 )
@@ -748,6 +749,11 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
             content=str(findings),
             status="failed",
         )
+
+    # 模型偶尔会给出完整的证据编号与来源描述，却漏掉最后的 URL。
+    # 使用本轮已保存的原始搜索结果做确定性回填，避免最终报告出现不可点击来源。
+    if findings and search_groups:
+        findings = enrich_report_sources(findings, search_groups)
 
     # 使用结构化 payload，避免把长 JSON 直接混排进 Markdown。
     task_number = task["id"].removeprefix("task_")

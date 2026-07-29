@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from core.source_merge import (  # noqa: E402
     _renumber_search_report,
+    enrich_report_sources,
     has_source_section,
     merge_findings_with_sources,
     replace_report_sources,
@@ -317,6 +318,72 @@ def test_replace_report_sources_normalizes_report_fallback_sources():
     assert "结论A[1]" in finalized
     assert "结论B[2]" in finalized
     assert "未引用来源" not in finalized
+
+
+# ── 14. 研究员漏掉来源区段时，从证据摘要和原始搜索结果恢复 URL ──────────────
+
+def test_enrich_report_sources_recovers_missing_source_section():
+    finding = (
+        "【研究结论：数字教育】\n"
+        "- 学校发布教育数字化十条措施[1]，置信度：高\n\n"
+        "【证据摘要】\n"
+        "- 文字证据：\n"
+        "  - [1] 人民网报道：发布教育数字化十条措施\n\n"
+        "【不确定或证据不足的方面】\n"
+        "暂无。"
+    )
+    searches = [{
+        "query": "北京邮电大学 教育数字化 十条措施",
+        "results": [{
+            "title": "打造“数智北邮”！北京邮电大学发布最新措施--人民网",
+            "url": "http://edu.people.com.cn/example.html",
+            "snippet": "学校发布关于加强教育数字化工作的十条措施。",
+        }],
+    }]
+
+    enriched = enrich_report_sources(finding, searches)
+    sources = _sources_as_dict(enriched)
+
+    assert sources[1][1] == "http://edu.people.com.cn/example.html"
+    assert "【证据摘要】" in enriched
+
+
+def test_enrich_report_sources_fills_title_only_source():
+    finding = (
+        "平台完成建设[1]。\n\n"
+        "## 来源\n\n"
+        "- [1] 北京邮电大学数字孪生平台中标公告"
+    )
+    searches = [{
+        "query": "北京邮电大学 数字孪生 平台",
+        "results": [{
+            "title": "北京邮电大学数字孪生平台中标公告",
+            "url": "https://www.ccgp.gov.cn/example.html",
+            "snippet": "项目中标公告。",
+        }],
+    }]
+
+    enriched = enrich_report_sources(finding, searches)
+    assert _sources_as_dict(enriched)[1][1] == "https://www.ccgp.gov.cn/example.html"
+
+
+def test_enrich_report_sources_keeps_unmatched_source_without_guessing():
+    finding = (
+        "结论[1]。\n\n"
+        "## 来源\n\n"
+        "- [1] 未公开的线下访谈记录"
+    )
+    searches = [{
+        "query": "完全无关的搜索",
+        "results": [{
+            "title": "无关页面",
+            "url": "https://example.com/unrelated",
+            "snippet": "没有任何相同主题。",
+        }],
+    }]
+
+    enriched = enrich_report_sources(finding, searches)
+    assert _sources_as_dict(enriched)[1][1] == ""
 
 
 def _run_all():

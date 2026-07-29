@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import difflib
 import re
 from dataclasses import dataclass
 from typing import Optional
@@ -48,6 +49,33 @@ _NEXT_HEADING_RE = re.compile(r"^#{1,6}\s+\S", re.MULTILINE)
 _NUM_TAG_RE = re.compile(r"\[(\d+)\]")
 # URL
 _URL_RE = re.compile(r"https?://\S+")
+_BARE_DOMAIN_RE = re.compile(
+    r"(?<![@\w])((?:[\w-]+\.)+[A-Za-z]{2,}(?:/[^\s，。；、)]*)?)",
+    re.IGNORECASE,
+)
+
+# 研究员有时会写出正确的来源机构和证据摘要，却漏掉 URL。这里仅把明确的
+# 机构名用于候选链接加权；最终仍会结合页面标题、摘要和搜索词判断。
+_PROVIDER_DOMAINS: dict[str, tuple[str, ...]] = {
+    "教育部": ("moe.gov.cn",),
+    "人民网": ("people.com.cn",),
+    "人民日报": ("people.com.cn", "paper.people.com.cn"),
+    "新华网": ("xinhuanet.com", "news.cn"),
+    "央广网": ("cnr.cn",),
+    # bjnews.com.cn 是《新京报》，不能作为《北京日报》的域名命中。
+    "北京日报": ("beijingdaily.com.cn", "bjd.com.cn"),
+    "北邮官网": ("bupt.edu.cn",),
+    "北京邮电大学官网": ("bupt.edu.cn",),
+    "信息化技术中心": ("nic.bupt.edu.cn",),
+    "政府采购网": ("ccgp.gov.cn",),
+    "北京市科委": ("kw.beijing.gov.cn",),
+    "科委官网": ("kw.beijing.gov.cn",),
+    "知乎": ("zhihu.com",),
+    "泰伯网": ("taibo.cn",),
+    "新浪科技": ("sina.com.cn",),
+    "高考直通车": ("gaokaozhitongche.com",),
+    "CERNET": ("cernet.edu.cn", "edu.cn"),
+}
 
 
 # ── 内部工具 ──────────────────────────────────────────────────────────────────
@@ -113,6 +141,275 @@ def _format_source(num: int, title: str, url: str) -> str:
     if title:
         return f"- [{num}] {title}"
     return f"- [{num}] {url}"
+
+
+def _compact_text(value: object) -> str:
+    return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def _normalized_match_text(value: object) -> str:
+    return "".join(
+        re.findall(r"[\u4e00-\u9fffA-Za-z0-9]+", str(value or ""))
+    ).casefold()
+
+
+def _match_grams(value: object) -> set[str]:
+    text = _normalized_match_text(value)
+    grams = {text[i:i + 2] for i in range(max(0, len(text) - 1))}
+    grams.update(re.findall(r"[a-z]+|\d{4}|\d+(?:\.\d+)?g", text))
+    return grams
+
+
+def _citation_context(text: str, num: int) -> str:
+    """提取 [num] 所在的短句，避免同一段多个引用互相干扰。"""
+    contexts: list[str] = []
+    for match in re.finditer(rf"\[{num}\]", text):
+        before = text[max(0, match.start() - 180):match.start()]
+        after = text[match.end():min(len(text), match.end() + 80)]
+        before = re.split(r"[。！？\n]", before)[-1]
+        after = re.split(r"[。！？\n]", after)[0]
+        context = _compact_text(f"{before} [{num}] {after}")
+        if context and context not in contexts:
+            contexts.append(context)
+    return " ".join(contexts)
+
+
+def _evidence_source_hints(text: str) -> dict[int, str]:
+    """
+    兼容研究员偶尔漏写 ``## 来源``、只在 ``【证据摘要】`` 中列出处的情况。
+    支持 ``[7][8] 同一组摘要``，两个编号都会得到该提示。
+    """
+    evidence_start = re.search(
+        r"(?:【\s*证据摘要\s*】|^#{1,6}\s*证据摘要\s*$)",
+        text,
+        re.MULTILINE,
+    )
+    if not evidence_start:
+        return {}
+
+    remainder = text[evidence_start.end():]
+    evidence_end = re.search(
+        r"(?:【\s*(?:不确定|证据不足)[^】]*】|^#{1,6}\s+\S)",
+        remainder,
+        re.MULTILINE,
+    )
+    section = remainder[:evidence_end.start()] if evidence_end else remainder
+
+    hints: dict[int, str] = {}
+    for line in section.splitlines():
+        match = re.match(
+            r"^\s*[-*]\s*((?:\[\d+\]\s*)+)(.+?)\s*$",
+            line,
+        )
+        if not match:
+            continue
+        description = _compact_text(match.group(2))
+        for raw_num in _NUM_TAG_RE.findall(match.group(1)):
+            hints[int(raw_num)] = description
+    return hints
+
+
+def _search_candidates(search_groups: list[dict]) -> list[dict[str, str]]:
+    """把多轮 web_search 结果按 URL 去重，并保留该 URL 出现过的搜索词。"""
+    by_url: dict[str, dict[str, str]] = {}
+    for group in search_groups or []:
+        if not isinstance(group, dict):
+            continue
+        query = _compact_text(group.get("query"))
+        for item in group.get("results") or []:
+            if not isinstance(item, dict):
+                continue
+            url = _compact_text(item.get("url"))
+            if not re.match(r"^https?://", url, re.IGNORECASE):
+                continue
+            key = _normalize_url(url)
+            candidate = by_url.get(key)
+            if candidate is None:
+                candidate = {
+                    "title": _compact_text(item.get("title")),
+                    "url": url,
+                    "snippet": _compact_text(item.get("snippet")),
+                    "queries": query,
+                }
+                by_url[key] = candidate
+            elif query and query not in candidate["queries"]:
+                candidate["queries"] = _compact_text(
+                    f"{candidate['queries']} {query}"
+                )
+    return list(by_url.values())
+
+
+def _candidate_score(
+    hint: str,
+    focus: str,
+    candidate: dict[str, str],
+) -> tuple[float, bool, float]:
+    """
+    返回 (排序分数, 是否命中明确的来源机构域名, 页面内容相关性)。
+
+    ``hint`` 包含来源机构描述，``focus`` 只取当前编号所在短句。这样像
+    ``[13][14] 新华网/央广网`` 这种合并摘要不会把两个不同事实误配到同一页。
+    """
+    focus_grams = _match_grams(focus or hint)
+    title_grams = _match_grams(candidate["title"])
+    snippet_grams = _match_grams(candidate["snippet"])
+    query_grams = _match_grams(candidate["queries"])
+
+    title_dice = (
+        2 * len(focus_grams & title_grams) / (len(focus_grams) + len(title_grams))
+        if focus_grams and title_grams
+        else 0
+    )
+    snippet_cover = (
+        len(focus_grams & snippet_grams) / len(focus_grams)
+        if focus_grams
+        else 0
+    )
+    query_cover = (
+        len(focus_grams & query_grams) / len(focus_grams)
+        if focus_grams
+        else 0
+    )
+
+    normalized_focus = _normalized_match_text(focus or hint)
+    normalized_title = _normalized_match_text(candidate["title"])
+    longest = difflib.SequenceMatcher(
+        None,
+        normalized_focus,
+        normalized_title,
+    ).find_longest_match().size
+    longest_ratio = longest / max(1, min(len(normalized_title), 45))
+
+    content_score = (
+        title_dice * 70
+        + snippet_cover * 25
+        + longest_ratio * 35
+    )
+    score = content_score + query_cover * 18
+
+    hint_years = set(re.findall(r"20\d{2}", focus or hint))
+    candidate_years = set(
+        re.findall(
+            r"20\d{2}",
+            f"{candidate['title']} {candidate['snippet']}",
+        )
+    )
+    score += 6 * len(hint_years & candidate_years)
+    score -= 4 * len(hint_years - candidate_years)
+
+    provider_match = False
+    candidate_url = candidate["url"].casefold()
+    for provider, domains in _PROVIDER_DOMAINS.items():
+        if provider.casefold() not in hint.casefold():
+            continue
+        if any(domain in candidate_url for domain in domains):
+            score += 35
+            provider_match = True
+        else:
+            score -= 5
+
+    return score, provider_match, content_score
+
+
+def _direct_url_from_hint(hint: str) -> str:
+    """像 ``ucloud.bupt.edu.cn`` 这类明确域名无需搜索即可转成链接。"""
+    match = _BARE_DOMAIN_RE.search(hint)
+    if not match:
+        return ""
+    value = match.group(1).rstrip(".,;，。；")
+    return f"https://{value}"
+
+
+def enrich_report_sources(
+    text: str,
+    search_groups: list[dict],
+) -> str:
+    """
+    用本次研究的原始搜索结果补齐来源 URL。
+
+    - 已有完整 URL 的来源保持不变；
+    - 若研究员漏写 ``## 来源``，从 ``【证据摘要】`` 恢复编号和标题；
+    - 仅在标题/摘要/搜索词相关性足够高，或明确命中来源机构域名时回填直链；
+    - 无法可靠匹配时保留标题，不猜测 URL，由前端提供可点击的搜索兜底。
+    """
+    text = (text or "").strip()
+    if not text:
+        return text
+
+    body, source_section = _split_source_section(text)
+    parsed_sources = _parse_sources(source_section or "")
+    source_by_num = {source.num: source for source in parsed_sources}
+    evidence_hints = _evidence_source_hints(body)
+
+    evidence_match = re.search(
+        r"(?:【\s*证据摘要\s*】|^#{1,6}\s*证据摘要\s*$)",
+        body,
+        re.MULTILINE,
+    )
+    conclusion = body[:evidence_match.start()] if evidence_match else body
+    cited_nums = {int(raw) for raw in _NUM_TAG_RE.findall(conclusion)}
+    nums = sorted(cited_nums | set(source_by_num) | set(evidence_hints))
+    if not nums:
+        return text
+
+    candidates = _search_candidates(search_groups)
+    enriched: list[tuple[int, str, str]] = []
+    for num in nums:
+        existing = source_by_num.get(num)
+        title = existing.title if existing else evidence_hints.get(num, "")
+        context = _citation_context(conclusion, num)
+        hint = _compact_text(
+            " ".join(
+                part
+                for part in (title, evidence_hints.get(num, ""), context)
+                if part
+            )
+        )
+        if not title:
+            title = context or f"来源 {num}"
+
+        url = existing.url if existing else ""
+        if not url:
+            url = _direct_url_from_hint(hint)
+        if not url and candidates and hint:
+            matching_focus = _compact_text(
+                " ".join(
+                    part
+                    for part in (
+                        existing.title if existing else "",
+                        context,
+                    )
+                    if part
+                )
+            )
+            ranked = sorted(
+                (
+                    (
+                        *_candidate_score(hint, matching_focus, candidate),
+                        candidate,
+                    )
+                    for candidate in candidates
+                ),
+                key=lambda item: item[0],
+                reverse=True,
+            )
+            best_score, provider_match, content_score, best = ranked[0]
+            second_score = ranked[1][0] if len(ranked) > 1 else float("-inf")
+            if (
+                provider_match
+                and best_score >= 42
+                and content_score >= 13
+                and (content_score >= 16 or best_score - second_score >= 3)
+            ):
+                url = best["url"]
+            elif best_score >= 52 and content_score >= 34:
+                url = best["url"]
+
+        enriched.append((num, title, url))
+
+    source_lines = ["## 来源", ""]
+    source_lines.extend(_format_source(*source) for source in enriched)
+    return f"{body.rstrip()}\n\n" + "\n".join(source_lines)
 
 
 # ── 公开接口 ──────────────────────────────────────────────────────────────────
