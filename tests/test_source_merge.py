@@ -386,6 +386,28 @@ def test_enrich_report_sources_keeps_unmatched_source_without_guessing():
     assert _sources_as_dict(enriched)[1][1] == ""
 
 
+def test_malformed_source_section_does_not_pollute_merged_list():
+    finding = (
+        "=== 交通 ===\n"
+        "现在我已经收集了充分的证据。\n\n"
+        "---\n\n"
+        "## 来源\n\n"
+        "- [1] 。\n\n"
+        "- 2022年下半年，雄忻高铁全面开工\n"
+        "- [2] 雄安高速路网连通全国 - https://example.com/road\n"
+        "- [3] 。\n\n"
+        "**六、绿色出行**\n\n"
+        "- 容东片区绿色出行比例约55%\n"
+    )
+    merged = merge_findings_with_sources([finding])
+    assert len(merged.sources) == 1
+    num, title, url = merged.sources[0]
+    assert url == "https://example.com/road"
+    assert "\n" not in title
+    assert "绿色出行" not in merged.sources_md
+    assert "雄忻高铁" not in merged.sources_md
+
+
 def _run_all():
     import inspect
 

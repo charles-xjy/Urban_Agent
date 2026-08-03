@@ -124,11 +124,17 @@ def _parse_sources(sources_text: str) -> list[Source]:
             continue
         num = int(m_num.group(1))
         after_num = chunk[m_num.end():]
-        url_m = _URL_RE.search(after_num)
+        # 只看编号所在行：坏格式笔记会在 [n] 后拖出大段正文，
+        # 若全量解析会把正文吞进 title/url，污染最终来源列表。
+        first_line = after_num.split("\n", 1)[0]
+        url_m = _URL_RE.search(first_line)
         url = url_m.group(0).rstrip(".,;，。；)]") if url_m else ""
-        url_pos = after_num.find(url) if url else -1
-        title = after_num[:url_pos] if url_pos != -1 else after_num
-        title = title.strip(" \t\n\r-–—•·*、:")
+        url_pos = first_line.find(url) if url else -1
+        title = first_line[:url_pos] if url_pos != -1 else first_line
+        title = title.strip(" \t\r-–—•·*、:：。，,；;.")
+        if not url and not re.search(r"[\w\u4e00-\u9fff]", title):
+            # 「- [1] 。」这类编号后只剩标点的行不是真实来源
+            continue
         if not title and not url:
             continue
         sources.append(Source(num=num, title=title, url=url))

@@ -818,6 +818,8 @@ async def web_reporter_node(state: WebState) -> dict:
         writer = None
 
     report = ""
+    # TAG_NOSTREAM：报告进度已由 report_chunk custom event 推送，
+    # 若不抑制，token 会同时经 messages-tuple 流涌向前端造成渲染风暴。
     async for chunk in _llm(max_tokens=8192).astream([
         SystemMessage(content=_REPORTER_SYSTEM),
         HumanMessage(content=(
@@ -827,7 +829,7 @@ async def web_reporter_node(state: WebState) -> dict:
             f"统一来源列表（正文 [n] 必须对应这里的编号）：\n{merged.sources_md}\n\n"
             "请撰写城市变化分析报告，正文用 [n] 引用来源，报告结尾输出 ## 来源 区段。"
         )),
-    ]):
+    ], config={"tags": [TAG_NOSTREAM]}):
         delta = chunk.content or ""
         if not delta:
             continue
