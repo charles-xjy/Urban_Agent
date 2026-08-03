@@ -2,6 +2,40 @@
 
 城市变化多工具研究系统 — 基于 LangGraph 架构，支持 CLI 和 Web 两种运行模式。
 
+## 目录
+
+- [研究假设](#研究假设)
+  - [三组对照实验](#三组对照实验)
+- [调度模式：领域化 Super Agent Harness](#调度模式领域化-super-agent-harness)
+  - [Agent 调用方式差异](#agent-调用方式差异)
+  - [参考框架执行流程](#参考框架执行流程)
+- [整体架构](#整体架构)
+- [完整示例](#完整示例)
+- [工具详解](#工具详解)
+  - [web_search](#web_search)
+  - [web_fetch](#web_fetch)
+  - [analyze_satellite_image](#analyze_satellite_image)
+  - [query_poi_history](#query_poi_history)
+- [Evidence-driven ReAct 循环](#evidence-driven-react-循环)
+  - [证据置信度](#证据置信度)
+  - [证据冲突处理](#证据冲突处理)
+  - [轮数追踪](#轮数追踪)
+- [目录结构](#目录结构)
+- [快速开始](#快速开始)
+  - [1. 安装依赖](#1-安装依赖)
+  - [2. 配置 .env](#2-配置-env)
+  - [3. GEE 认证（首次）](#3-gee-认证首次)
+- [启动方式](#启动方式)
+  - [方式零：启动 vLLM 模型服务](#方式零启动-vllm-模型服务)
+  - [方式一：CLI 模式](#方式一cli-模式)
+  - [方式二：Web 前端模式](#方式二web-前端模式)
+- [模型分工](#模型分工)
+- [工具选择策略](#工具选择策略)
+- [数据源](#数据源)
+- [状态结构](#状态结构)
+- [评估方案](#评估方案)
+- [依赖](#依赖)
+
 ---
 
 ## 研究假设
@@ -426,6 +460,40 @@ earthengine authenticate
 ---
 
 ## 启动方式
+
+### 方式零：启动 vLLM 模型服务
+
+CLI 和 Web 模式都需要先启动 vLLM 模型服务。以下命令以 Qwen3.6-35B-A3B 为例，使用双卡（GPU 1、2）张量并行，对外暴露模型名 `Qwen_agent`，监听 8001 端口：
+
+```bash
+CUDA_VISIBLE_DEVICES=1,2 \
+vllm serve Qwen/Qwen3.6-35B-A3B \
+  --served-model-name Qwen_agent \
+  --trust-remote-code \
+  --dtype bfloat16 \
+  --gpu-memory-utilization 0.9 \
+  --max-model-len 163840 \
+  --tensor-parallel-size 2 \
+  --enable-auto-tool-choice \
+  --tool-call-parser qwen3_coder \
+  --reasoning-parser qwen3 \
+  --default-chat-template-kwargs '{"enable_thinking": false}' \
+  --port 8001
+```
+
+关键参数说明：
+- `--served-model-name Qwen_agent`：对外暴露的模型名，启动后由 `/v1/models` 自动查询，无需在 `.env` 手填
+- `--tensor-parallel-size 2`：双卡张量并行，与 `CUDA_VISIBLE_DEVICES=1,2` 对应
+- `--max-model-len 163840`：超长上下文，Researcher 汇总多源证据时需要
+- `--enable-auto-tool-choice` + `--tool-call-parser qwen3_coder`：启用 Qwen 原生工具调用解析，ReAct 循环依赖此能力
+- `--reasoning-parser qwen3`：解析 reasoning 内容
+- `--default-chat-template-kwargs '{"enable_thinking": false}'`：关闭思考模式，避免输出冗余推理链
+
+> 视觉模型（卫星图描述，端口 8002）需另起一个 vLLM 进程，参数类似但更换模型与端口。模型分工见下文。
+
+服务就绪后，`10.129.107.145:8001/v1/models` 应能查到 `Qwen_agent`。
+
+---
 
 ### 方式一：CLI 模式
 

@@ -24,7 +24,20 @@ function ContentCopyable({
 
   const handleCopy = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(content);
+    // navigator.clipboard 仅在 secure context（HTTPS / localhost）下存在，
+    // 局域网走明文 HTTP 访问时为 undefined，回退到 execCommand 兜底。
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(content);
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = content;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
