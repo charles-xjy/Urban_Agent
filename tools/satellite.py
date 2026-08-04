@@ -128,8 +128,12 @@ async def analyze_satellite_image(
     # 存档 baseline（Researcher 看不到）
     asyncio.create_task(_save_baseline(location, start_year, end_year, baseline_report))
 
+    start_file = os.path.basename(img_start.path)
+    end_file = os.path.basename(img_end.path)
+
     return (
-        f"卫星图像分析（{location}  {start_year} → {end_year}  重点：{focus}）\n\n"
+        f"卫星图像分析（{location}  {start_year} → {end_year}  重点：{focus}）\n"
+        f"影像文件：{start_file}、{end_file}\n\n"
         f"视觉观察（仅像素级描述，不含解释）：\n{visual_desc}\n\n"
         "注：以上为直接视觉观察，需结合文字证据和 POI 数据才能得出结论。"
     )

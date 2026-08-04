@@ -135,6 +135,9 @@ def _parse_sources(sources_text: str) -> list[Source]:
         if not url and not re.search(r"[\w\u4e00-\u9fff]", title):
             # 「- [1] 。」这类编号后只剩标点的行不是真实来源
             continue
+        if not url and re.match(r"^置信度\s*[:：（(]", title):
+            # 「- [n] 置信度：高」是结论条目残片，不是来源
+            continue
         if not title and not url:
             continue
         sources.append(Source(num=num, title=title, url=url))

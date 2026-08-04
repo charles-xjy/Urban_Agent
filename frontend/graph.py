@@ -531,6 +531,79 @@ def _src_line(num: int, title: str, url: str) -> str:
     return f"- [{num}] {title or url}"
 
 
+_SOURCE_HEADING_LINE_RE = re.compile(
+    r"^\s*(?:#{1,6}\s*来源\s*[:：]?\s*|【\s*来源\s*】\s*|来源\s*[:：]?\s*)$",
+    re.MULTILINE,
+)
+
+
+def _findings_degenerate(findings: str) -> bool:
+    """结论正文缺失：整体为空，或来源区段前只有短前言（模型漏写结论）。"""
+    text = (findings or "").strip()
+    if not text:
+        return True
+    body = _SOURCE_HEADING_LINE_RE.split(text, 1)[0]
+    return len(body.strip()) < 200
+
+
+def _salvage_findings(
+    topic: str,
+    search_groups: list[dict],
+    tool_results: list[dict],
+) -> str:
+    """研究员最终输出退化时，用已收集的原始材料确定性重建 findings。"""
+    evidence: list[str] = []
+    sources: list[str] = []
+    seen: set[str] = set()
+    for sg in search_groups:
+        for item in sg.get("results", []):
+            if len(sources) >= 20:
+                break
+            url = _compact(item.get("url"))
+            title = _compact(item.get("title"))
+            snippet = _compact(item.get("snippet"))
+            if not url.startswith(("http://", "https://")):
+                continue
+            key = url.rstrip("/").casefold()
+            if key in seen:
+                continue
+            seen.add(key)
+            n = len(sources) + 1
+            label = title or url
+            evidence.append(f"- {label}：{snippet}[{n}]" if snippet else f"- {label}[{n}]")
+            sources.append(_src_line(n, title, url))
+        if len(sources) >= 20:
+            break
+
+    tool_labels = {
+        "analyze_satellite_image": "卫星图像分析",
+        "query_poi_history": "POI 历史数据",
+    }
+    tool_notes = []
+    for tr in tool_results:
+        label = tool_labels.get(tr.get("tool"), str(tr.get("tool") or ""))
+        summary = _compact(tr.get("summary"))[:400]
+        if label and summary:
+            tool_notes.append(f"- {label}：{summary}")
+
+    if not evidence and not tool_notes:
+        return ""
+
+    parts = [
+        f"【研究材料汇总：{topic}】",
+        "（研究过程未正常输出结论，以下为已收集的证据材料）",
+        "",
+    ]
+    parts.extend(evidence)
+    if tool_notes:
+        parts.extend(["", "**工具分析结果**"])
+        parts.extend(tool_notes)
+    body = "\n".join(parts)
+    if sources:
+        body += "\n\n## 来源\n\n" + "\n".join(sources)
+    return body
+
+
 class ResearcherInput(TypedDict):
     messages: list[BaseMessage]
     task: dict
@@ -761,6 +834,13 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
             content=str(findings),
             status="failed",
         )
+
+    # 研究员偶尔输出退化：最终消息为空，或只剩短前言+来源、结论正文丢失。
+    # 用已收集的原始检索/工具材料确定性重建，保证子 agent 报告不空、来源标题正确。
+    if terminal_status == "completed" and _findings_degenerate(findings):
+        salvaged = _salvage_findings(topic, search_groups, tool_results)
+        if salvaged:
+            findings = salvaged
 
     # 模型偶尔会给出完整的证据编号与来源描述，却漏掉最后的 URL。
     # 使用本轮已保存的原始搜索结果做确定性回填，避免最终报告出现不可点击来源。
