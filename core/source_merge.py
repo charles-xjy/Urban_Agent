@@ -492,13 +492,40 @@ def merge_findings_with_sources(findings: list[str]) -> MergedReport:
                 unified.append((s.num, s.title, s.url))
         offset += n
 
+    # 跨 finding 去重：同一 URL（或无 URL 时的同名占位条目）只保留一次，
+    # 重排为从 1 的连续编号，并把合并正文里的 [n] 同步改号。
+    deduped: list[tuple[int, str, str]] = []
+    remap: dict[int, int] = {}
+    seen_keys: dict[str, int] = {}
+    for num, title, url in unified:
+        key = (
+            f"url:{_normalize_url(url)}"
+            if url
+            else f"title:{title.strip().casefold()}"
+        )
+        if key in seen_keys:
+            remap[num] = seen_keys[key]
+        else:
+            new_num = len(deduped) + 1
+            seen_keys[key] = new_num
+            remap[num] = new_num
+            deduped.append((new_num, title, url))
+    unified = deduped
+
+    def _remap_citation(m: re.Match) -> str:
+        n = int(m.group(1))
+        return f"[{remap[n]}]" if n in remap else m.group(0)
+
+    merged_body = "\n\n---\n\n".join(bodies)
+    merged_body = _NUM_TAG_RE.sub(_remap_citation, merged_body)
+
     lines = ["## 来源", ""]
     for num, title, url in unified:
         lines.append(_format_source(num, title, url))
     sources_md = "\n".join(lines)
 
     return MergedReport(
-        body="\n\n---\n\n".join(bodies),
+        body=merged_body,
         sources_md=sources_md,
         sources=unified,
     )
@@ -541,8 +568,10 @@ def replace_report_sources(
         if num in cited
     ]
 
-    if not selected:
-        return body.strip()
+    # reporter 自创编号时（正文引用的 [n] 大多不在统一来源里），
+    # 偶然的数字重合不可信：整体视为幻觉编号，输出完整统一来源列表。
+    if not selected or (cited and len(selected) * 2 < len(cited)):
+        selected = list(sources)
 
     old_to_new = {
         old_num: new_num
@@ -552,9 +581,11 @@ def replace_report_sources(
     def _repl(m: re.Match) -> str:
         old_num = int(m.group(1))
         new_num = old_to_new.get(old_num)
-        return f"[{new_num}]" if new_num is not None else m.group(0)
+        return f"[{new_num}]" if new_num is not None else ""
 
     body = _NUM_TAG_RE.sub(_repl, body)
+    # 编号被清除后可能残留「文字 ，」这类悬空空格
+    body = re.sub(r"[ \t]+(?=[，。；：、）)\n])", "", body)
 
     lines = ["## 来源", ""]
     lines.extend(

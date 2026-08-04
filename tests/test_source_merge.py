@@ -386,6 +386,25 @@ def test_enrich_report_sources_keeps_unmatched_source_without_guessing():
     assert _sources_as_dict(enriched)[1][1] == ""
 
 
+def test_replace_report_sources_survives_hallucinated_citations():
+    report = (
+        "# 报告\n\n卫星影像显示农田变为建筑群[14]，水质改善[15]。\n\n"
+        "## 来源\n\n- [14] 编造的来源\n"
+    )
+    sources = [
+        (1, "真实来源甲", "https://example.com/a"),
+        (2, "真实来源乙", "https://example.com/b"),
+    ]
+    final = replace_report_sources(report, sources)
+    parsed = _sources_as_dict(final)
+    assert parsed == {
+        1: ("真实来源甲", "https://example.com/a"),
+        2: ("真实来源乙", "https://example.com/b"),
+    }
+    body = final.split("## 来源")[0]
+    assert "[14]" not in body and "[15]" not in body
+
+
 def test_malformed_source_section_does_not_pollute_merged_list():
     finding = (
         "=== 交通 ===\n"

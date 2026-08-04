@@ -50,6 +50,7 @@ from core.intent import (  # noqa: E402
 )
 from core.source_merge import (  # noqa: E402
     enrich_report_sources,
+    has_source_section,
     merge_findings_with_sources,
     replace_report_sources,
 )
@@ -519,6 +520,17 @@ def dispatch_researchers(state: WebState) -> list[Send] | str:
 
 # ── 8. Researcher 节点 ────────────────────────────────────────────────────────
 
+
+def _compact(value: object) -> str:
+    return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def _src_line(num: int, title: str, url: str) -> str:
+    if title and url:
+        return f"- [{num}] {title} - {url}"
+    return f"- [{num}] {title or url}"
+
+
 class ResearcherInput(TypedDict):
     messages: list[BaseMessage]
     task: dict
@@ -755,6 +767,38 @@ async def web_researcher_node(state: ResearcherInput) -> dict:
     if findings and search_groups:
         findings = enrich_report_sources(findings, search_groups)
 
+    # 研究员偶尔整段漏写 ## 来源（比如只做了卫星图分析）。
+    # 用已保存的原始检索结果确定性地补一个来源区段，保证每个 agent 都有来源。
+    if findings and terminal_status == "completed" and not has_source_section(findings):
+        lines: list[str] = []
+        seen: set[str] = set()
+        for sg in search_groups:
+            for item in sg.get("results", []):
+                url = _compact(item.get("url"))
+                title = _compact(item.get("title"))
+                if not url.startswith(("http://", "https://")):
+                    continue
+                key = url.rstrip("/").casefold()
+                if key in seen:
+                    continue
+                seen.add(key)
+                lines.append(_src_line(len(lines) + 1, title, url))
+        if not lines:
+            tool_labels = {
+                "analyze_satellite_image": (
+                    f"卫星图像分析（{location} {start_year}→{end_year}）"
+                ),
+                "query_poi_history": "POI 历史数据（OpenStreetMap/ohsome API）",
+            }
+            used = {tr.get("tool") for tr in tool_results}
+            for tool, label in tool_labels.items():
+                if tool in used:
+                    lines.append(_src_line(len(lines) + 1, label, ""))
+        if lines:
+            findings = (
+                f"{findings.rstrip()}\n\n## 来源\n\n" + "\n".join(lines)
+            )
+
     # 使用结构化 payload，避免把长 JSON 直接混排进 Markdown。
     task_number = task["id"].removeprefix("task_")
     card_payload = json.dumps(
@@ -793,6 +837,7 @@ _REPORTER_SYSTEM = """\
 
 引用规则（务必遵守）：
 - 正文引用证据时使用方括号编号 [n]，编号必须对应随附的统一来源列表，不得自创新编号；
+- 笔记中没有 [n] 编号的内容（如卫星图像分析、POI 数据）直接陈述即可，严禁为其编造或续写任何编号；
 - 来源编号在整份报告中全局唯一，不得在新章节重新从 [1] 开始，也不得让同一编号指向不同来源；
 - 只引用最终报告实际采用的证据，不要为了展示来源而引用无关材料；
 - 报告结尾输出一个 `## 来源` 区段，按编号列出所有引用过的来源；
